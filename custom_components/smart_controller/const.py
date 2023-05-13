@@ -1,4 +1,3 @@
-
 """Constants for smart_controller."""
 from logging import Logger, getLogger
 from typing import Final

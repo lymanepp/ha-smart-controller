@@ -198,41 +198,35 @@ class CeilingFanController(BaseController):
 
         ssi = summer_simmer_index(self.hass, self._temp, self._humidity[0])
         ssi_speed = extrapolate_value(
-            ssi, self.ssi_range, self.speed_range, low_default=0.0
+            ssi, self.ssi_range, self.speed_range, low_default=0
         )
 
         fan_state = self.hass.states.get(self.controlled_entity)
+        speed_step = fan_state.attributes.get(ATTR_PERCENTAGE_STEP, 100)
+
         curr_speed = (
             fan_state.attributes.get(ATTR_PERCENTAGE, 100)
             if fan_state.state == STATE_ON
             else 0
         )
-        speed_step = fan_state.attributes.get(ATTR_PERCENTAGE_STEP, 100)
-        new_speed = round(ssi_speed / speed_step, 0) * speed_step
-
-        if self._prereq_state == STATE_OFF and new_speed > 0:
-            new_speed = 0
-            LOGGER.debug(
-                "%s; state=%s; prerequisite is '%s'",
-                self.name,
-                self._state,
-                self._prereq_state,
-            )
+        new_speed = (
+            round(ssi_speed / speed_step, 0) * speed_step
+            if self._prereq_state != STATE_OFF
+            else 0
+        )
 
         if new_speed != curr_speed:
-            await self._call_set_percentage(new_speed)
+            LOGGER.debug(
+                "%s; state=%s; changing speed to %.0f percent for SSI %.1f",
+                self.name,
+                self._state,
+                new_speed,
+                ssi,
+            )
+            await self.hass.services.async_call(
+                FAN_DOMAIN,
+                SERVICE_SET_PERCENTAGE,
+                {ATTR_ENTITY_ID: self.controlled_entity, ATTR_PERCENTAGE: new_speed},
+            )
 
         return new_speed > 0
-
-    async def _call_set_percentage(self, new_speed: float) -> None:
-        LOGGER.debug(
-            "%s; state=%s; changing speed to %.0f percent",
-            self.name,
-            self._state,
-            new_speed,
-        )
-        await self.hass.services.async_call(
-            FAN_DOMAIN,
-            SERVICE_SET_PERCENTAGE,
-            {ATTR_ENTITY_ID: self.controlled_entity, ATTR_PERCENTAGE: new_speed},
-        )

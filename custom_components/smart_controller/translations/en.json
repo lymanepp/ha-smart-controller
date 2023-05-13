@@ -1,0 +1,118 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Choose something to control",
+                "description": "Choose a fan or light to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "controlled_entity": "Something to control"
+                }
+            },
+            "fan": {
+                "title": "Configure fan operating mode",
+                "description": "Configure the fan operating mode.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "ceiling_fan": "Ceiling fan",
+                    "exhaust_fan": "Exhaust fan"
+                }
+            },
+            "ceiling_fan": {
+                "title": "Configure ceiling fan controller",
+                "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "temp_sensor": "Temperature sensor",
+                    "humidity_sensor": "Humidity sensor",
+                    "prerequisite_entity": "Prerequisite entity (optional)",
+                    "speed_min": "Minimum fan speed",
+                    "speed_max": "Maximum fan speed",
+                    "ssi_min": "Fan will start when SSI above",
+                    "ssi_max": "Fan speed will be maximum when SSI above",
+                    "manual_control_minutes": "Manual control (optional)"
+                }
+            },
+            "exhaust_fan": {
+                "title": "Configure exhaust fan controller",
+                "description": "Configure the exhaust fan controller. If you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "temp_sensor": "Temperature sensor",
+                    "humidity_sensor": "Humidity sensor",
+                    "reference_temp_sensor": "Reference temperature sensor",
+                    "reference_humidity_sensor": "Reference humidity sensor",
+                    "rising_threshold": "Rising Threshold",
+                    "falling_threshold": "Falling Threshold",
+                    "manual_control_minutes": "Manual control (optional)"
+                }
+            },
+            "light": {
+                "title": "Configure light options",
+                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "motion_sensor": "Motion sensor (optional)",
+                    "auto_off_minutes": "Auto off (optional)",
+                    "manual_control_minutes": "Manual control (optional)",
+                    "illuminance_sensor": "Illuminance sensor (optional)",
+                    "illuminance_cutoff": "Illuminance cutoff (optional)",
+                    "on_blocker_entity": "Block turning on light (optional)",
+                    "off_blocker_entity": "Block turning off light (optional)"
+                }
+            }
+        },
+        "error": {
+            "manual_control_no_motion": "Manual control requires a motion sensor."
+        },
+        "abort": {
+            "nothing_to_control": "No entities are available to control",
+            "already_configured": "An integration with the same fan already exists."
+        }
+    },
+    "options": {
+        "step": {
+            "ceiling_fan": {
+                "title": "Configure ceiling fan controller",
+                "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "temp_sensor": "Temperature sensor",
+                    "humidity_sensor": "Humidity sensor",
+                    "prerequisite_entity": "Prerequisite entity (optional)",
+                    "speed_min": "Minimum fan speed",
+                    "speed_max": "Maximum fan speed",
+                    "ssi_min": "Fan will start when SSI above",
+                    "ssi_max": "Fan speed will be maximum when SSI above",
+                    "manual_control_minutes": "Manual control (optional)"
+                }
+            },
+            "exhaust_fan": {
+                "title": "Configure exhaust fan controller",
+                "description": "Turn a fan on and off based on the difference in absolute humidity (g/m³) between temperature and humidity sensors in one area and reference temperature and humidity sensors in another area.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "temp_sensor": "Temperature sensor",
+                    "humidity_sensor": "Humidity sensor",
+                    "reference_temp_sensor": "Reference temperature sensor",
+                    "reference_humidity_sensor": "Reference humidity sensor",
+                    "rising_threshold": "Rising Threshold",
+                    "falling_threshold": "Falling Threshold",
+                    "manual_control_minutes": "Manual control (optional)"
+                }
+            },
+            "light": {
+                "title": "Configure light controller",
+                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "data": {
+                    "motion_sensor": "Motion sensor (optional)",
+                    "auto_off_minutes": "Auto off (optional)",
+                    "manual_control_minutes": "Manual control (optional)",
+                    "illuminance_sensor": "Illuminance sensor (optional)",
+                    "illuminance_cutoff": "Illuminance cutoff (optional)",
+                    "on_blocker_entity": "Block turning on light (optional)",
+                    "off_blocker_entity": "Block turning off light (optional)"
+                }
+            }
+        },
+        "error": {
+            "manual_control_no_motion": "Manual control requires a motion sensor."
+        },
+        "abort": {
+            "already_configured": "An integration with the same fan already exists."
+        }
+    }
+}

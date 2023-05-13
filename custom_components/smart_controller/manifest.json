@@ -1,0 +1,12 @@
+{
+  "domain": "smart_controller",
+  "name": "Smart Controller",
+  "codeowners": [
+    "@lymanepp"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/lymanepp/ha-smart-controller",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/lymanepp/ha-smart-controller/issues",
+  "version": "0.0.0"
+}

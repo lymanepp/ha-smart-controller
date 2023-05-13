@@ -209,7 +209,7 @@ class CeilingFanController(BaseController):
             if fan_state.state == STATE_ON
             else 0
         )
-        new_speed = (
+        new_speed = int(
             round(ssi_speed / speed_step, 0) * speed_step
             if self._prereq_state != STATE_OFF
             else 0

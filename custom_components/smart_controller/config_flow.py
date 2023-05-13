@@ -104,7 +104,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             # TODO: validate dependencies between fields here (or in schema)
 
-            unique_id = "{DOMAIN}__" + slugify(self._controlled_entity)
+            unique_id = f"{DOMAIN}__" + slugify(self._controlled_entity)
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
@@ -136,7 +136,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             # TODO: validate dependencies between fields here (or in schema)
 
-            unique_id = "{DOMAIN}__" + slugify(self._controlled_entity)
+            unique_id = f"{DOMAIN}__" + slugify(self._controlled_entity)
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
@@ -169,7 +169,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             ) and not user_input.get(LightConfig.MOTION_SENSOR):
                 errors["base"] = "manual_control_no_motion"
 
-            unique_id = "{DOMAIN}__" + slugify(self._controlled_entity)
+            unique_id = f"{DOMAIN}__" + slugify(self._controlled_entity)
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 

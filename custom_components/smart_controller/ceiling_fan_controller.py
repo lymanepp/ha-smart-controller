@@ -1,12 +1,14 @@
-"""TODO."""
+"""Representation of a Ceiling Fan Controller."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta
 
 from homeassistant.backports.enum import StrEnum
-from homeassistant.components.fan import ATTR_PERCENTAGE, ATTR_PERCENTAGE_STEP
-from homeassistant.components.fan import DOMAIN as FAN_DOMAIN
-from homeassistant.components.fan import SERVICE_SET_PERCENTAGE
+from homeassistant.components.fan import (
+    ATTR_PERCENTAGE,
+    ATTR_PERCENTAGE_STEP,
+    SERVICE_SET_PERCENTAGE,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -15,6 +17,7 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    Platform,
 )
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
 from homeassistant.helpers.event import async_track_time_interval
@@ -28,7 +31,7 @@ ON_OFF = (STATE_ON, STATE_OFF)
 
 
 class MyState(StrEnum):
-    """TODO."""
+    """State machine states."""
 
     INIT = "init"
     OFF = "off"
@@ -38,7 +41,7 @@ class MyState(StrEnum):
 
 
 class MyEvent(StrEnum):
-    """TODO."""
+    """State machine events."""
 
     OFF = "off"
     ON = "on"
@@ -90,7 +93,7 @@ class CeilingFanController(BaseController):
         )
 
     async def async_setup(self, hass) -> CALLBACK_TYPE:
-        """TODO."""
+        """Additional setup unique to this controller."""
         unsubscriber = await super().async_setup(hass)
 
         self._unsubscribers.append(
@@ -153,7 +156,7 @@ class CeilingFanController(BaseController):
                 self.set_timer(self._manual_control_period)
 
             case (MyState.OFF, MyEvent.UPDATE_FAN_SPEED):
-                if fan_on := await self._set_fan_speed():
+                if fan_on := await self._update_fan_speed():
                     self.set_state(MyState.ON)
 
             case (MyState.ON, MyEvent.OFF):
@@ -163,25 +166,25 @@ class CeilingFanController(BaseController):
                 self.set_timer(self._manual_control_period)
 
             case (MyState.ON, MyEvent.UPDATE_FAN_SPEED):
-                if not (fan_on := await self._set_fan_speed()):
+                if not (fan_on := await self._update_fan_speed()):
                     self.set_state(MyState.OFF)
 
             case (MyState.OFF_MANUAL, MyEvent.ON):
                 self.set_timer(None)
-                fan_on = await self._set_fan_speed()
+                fan_on = await self._update_fan_speed()
                 self.set_state(MyState.ON if fan_on else MyState.OFF)
 
             case (MyState.OFF_MANUAL, MyEvent.TIMER):
-                fan_on = await self._set_fan_speed()
+                fan_on = await self._update_fan_speed()
                 self.set_state(MyState.ON if fan_on else MyState.OFF)
 
             case (MyState.ON_MANUAL, MyEvent.OFF):
                 self.set_timer(None)
-                fan_on = await self._set_fan_speed()
+                fan_on = await self._update_fan_speed()
                 self.set_state(MyState.ON if fan_on else MyState.OFF)
 
             case (MyState.ON_MANUAL, MyEvent.TIMER):
-                fan_on = await self._set_fan_speed()
+                fan_on = await self._update_fan_speed()
                 self.set_state(MyState.ON if fan_on else MyState.OFF)
 
             case _:
@@ -192,7 +195,7 @@ class CeilingFanController(BaseController):
                     event,
                 )
 
-    async def _set_fan_speed(self) -> bool:
+    async def _update_fan_speed(self) -> bool:
         if self._temp is None or self._humidity is None:
             return False
 
@@ -204,7 +207,7 @@ class CeilingFanController(BaseController):
         fan_state = self.hass.states.get(self.controlled_entity)
         speed_step = fan_state.attributes.get(ATTR_PERCENTAGE_STEP, 100)
 
-        curr_speed = (
+        curr_speed = int(
             fan_state.attributes.get(ATTR_PERCENTAGE, 100)
             if fan_state.state == STATE_ON
             else 0
@@ -217,15 +220,15 @@ class CeilingFanController(BaseController):
 
         if new_speed != curr_speed:
             LOGGER.debug(
-                "%s; state=%s; changing speed to %d percent for SSI %.1f",
+                "%s; state=%s; changing speed to %d percent for SSI=%.1f",
                 self.name,
                 self._state,
                 new_speed,
                 ssi,
             )
 
-            await self.hass.services.async_call(
-                FAN_DOMAIN,
+            await self.async_service_call(
+                Platform.FAN,
                 SERVICE_SET_PERCENTAGE,
                 {ATTR_ENTITY_ID: self.controlled_entity, ATTR_PERCENTAGE: new_speed},
             )

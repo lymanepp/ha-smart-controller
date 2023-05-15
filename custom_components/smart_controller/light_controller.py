@@ -1,10 +1,9 @@
-"""TODO."""
+"""Representation of a Light Controller."""
 from __future__ import annotations
 
 from datetime import timedelta
 
 from homeassistant.backports.enum import StrEnum
-from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -14,6 +13,7 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    Platform,
 )
 from homeassistant.core import HomeAssistant, State
 
@@ -26,7 +26,7 @@ ON_OFF = (STATE_ON, STATE_OFF)
 
 
 class MyState(StrEnum):
-    """TODO."""
+    """State machine states."""
 
     INIT = "init"
     OFF = "off"
@@ -36,7 +36,7 @@ class MyState(StrEnum):
 
 
 class MyEvent(StrEnum):
-    """TODO."""
+    """State machine events."""
 
     OFF = "off"
     ON = "on"
@@ -130,9 +130,9 @@ class LightController(BaseController):
                     ):
                         return
 
+                await self._set_light_mode(STATE_ON)
                 self.set_state(MyState.ON)
                 self.set_timer(self._auto_off_period)
-                await self._set_light_mode(STATE_ON)
 
             case (MyState.ON, MyEvent.OFF):
                 if self._manual_control_period:
@@ -150,8 +150,8 @@ class LightController(BaseController):
                     if blocker and blocker.state == STATE_ON:
                         return
 
-                self.set_state(MyState.OFF)
                 await self._set_light_mode(STATE_OFF)
+                self.set_state(MyState.OFF)
 
             case (MyState.OFF_MANUAL, MyEvent.ON):
                 self.set_state(MyState.ON)
@@ -177,15 +177,8 @@ class LightController(BaseController):
                 )
 
     async def _set_light_mode(self, mode: str):
-        LOGGER.debug(
-            "%s; state=%s; changing mode to '%s'",
-            self.name,
-            self._state,
-            mode,
-        )
-
-        await self.hass.services.async_call(
-            LIGHT_DOMAIN,
+        await self.async_service_call(
+            Platform.LIGHT,
             SERVICE_TURN_ON if mode == STATE_ON else SERVICE_TURN_OFF,
             {ATTR_ENTITY_ID: self.controlled_entity},
         )

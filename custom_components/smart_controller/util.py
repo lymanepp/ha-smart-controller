@@ -1,4 +1,4 @@
-"""TODO."""
+"""Utility functions."""
 
 from collections.abc import Iterable
 from math import e
@@ -23,18 +23,18 @@ from homeassistant.util.unit_conversion import TemperatureConverter
 ON_OFF = (STATE_ON, STATE_OFF)
 
 
-def absolute_humidity(temp: tuple[float, str], r_h: float):
-    """Calculate absolution humidity."""
+def absolute_humidity(temp: tuple[float, str], hum: float):
+    """Calculate absolute humidity from temperature and humidity."""
     t_c = TemperatureConverter.convert(*temp, TEMP_CELSIUS)
 
-    return r_h * 6.112 * 2.1674 * e ** ((t_c * 17.67) / (t_c + 243.5)) / (t_c + 273.15)
+    return hum * 6.112 * 2.1674 * e ** ((t_c * 17.67) / (t_c + 243.5)) / (t_c + 273.15)
 
 
-def summer_simmer_index(hass: HomeAssistant, temp: tuple[float, str], r_h: float):
-    """TODO."""
+def summer_simmer_index(hass: HomeAssistant, temp: tuple[float, str], hum: float):
+    """Calculate summer simmer index from temperature and humidity."""
     t_f = TemperatureConverter.convert(*temp, TEMP_FAHRENHEIT)
 
-    ssi = 1.98 * (t_f - (0.55 - (0.0055 * r_h)) * (t_f - 58)) - 56.83
+    ssi = 1.98 * (t_f - (0.55 - (0.0055 * hum)) * (t_f - 58)) - 56.83
 
     return TemperatureConverter.convert(
         ssi, TEMP_FAHRENHEIT, hass.config.units.temperature_unit
@@ -61,7 +61,7 @@ def extrapolate_value(
     low_default: float | None = None,
     high_default: float | None = None,
 ):
-    """TODO."""
+    """Extrapolate a value in the target range from a value in the source range."""
     if value < source_range[0]:
         return target_range[0] if low_default is None else low_default
 

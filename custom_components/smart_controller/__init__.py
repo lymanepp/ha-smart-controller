@@ -25,7 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         return False
 
     async def start_controller(_: Event = None):
-        domain_data[controller.controlled_entity] = await controller.async_setup(hass)
+        domain_data[config_entry.unique_id] = await controller.async_setup(hass)
 
     if hass.state == CoreState.running:
         await start_controller()
@@ -38,8 +38,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    controlled_entity = config_entry.data[CommonConfig.CONTROLLED_ENTITY]
-    listener_remover: CALLBACK_TYPE = hass.data[DOMAIN].pop(controlled_entity)
+    listener_remover: CALLBACK_TYPE = hass.data[DOMAIN].pop(config_entry.unique_id)
     listener_remover()
     return True
 
@@ -53,14 +52,14 @@ async def async_reload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 def _create_controller(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> BaseController | None:
-    match [config_entry.data[CommonConfig.TYPE]]:
-        case [ControllerType.LIGHT]:
+    match config_entry.data[CommonConfig.TYPE]:
+        case ControllerType.LIGHT:
             return LightController(hass, config_entry)
 
-        case [ControllerType.CEILING_FAN]:
+        case ControllerType.CEILING_FAN:
             return CeilingFanController(hass, config_entry)
 
-        case [ControllerType.EXHAUST_FAN]:
+        case ControllerType.EXHAUST_FAN:
             return ExhaustFanController(hass, config_entry)
 
         case _:

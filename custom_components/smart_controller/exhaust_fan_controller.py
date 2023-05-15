@@ -1,10 +1,9 @@
-"""TODO."""
+"""Representation of an Exhaust Fan Controller."""
 from __future__ import annotations
 
 from datetime import timedelta
 
 from homeassistant.backports.enum import StrEnum
-from homeassistant.components.fan import DOMAIN as FAN_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -15,6 +14,7 @@ from homeassistant.const import (
     STATE_ON,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    Platform,
 )
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
 
@@ -27,7 +27,7 @@ ON_OFF = (STATE_ON, STATE_OFF)
 
 
 class MyState(StrEnum):
-    """TODO."""
+    """State machine states."""
 
     INIT = "init"
     OFF = "off"
@@ -37,7 +37,7 @@ class MyState(StrEnum):
 
 
 class MyEvent(StrEnum):
-    """TODO."""
+    """State machine events."""
 
     OFF = "off"
     ON = "on"
@@ -85,7 +85,7 @@ class ExhaustFanController(BaseController):
         )
 
     async def async_setup(self, hass) -> CALLBACK_TYPE:
-        """TODO."""
+        """Additional setup unique to this controller."""
         unsubscriber = await super().async_setup(hass)
         await self._process_event(MyEvent.UPDATE_FAN_MODE)
         return unsubscriber
@@ -202,15 +202,8 @@ class ExhaustFanController(BaseController):
             new_mode = curr_mode
 
         if new_mode != curr_mode:
-            LOGGER.debug(
-                "%s; state=%s; changing mode to '%s'",
-                self.name,
-                self._state,
-                new_mode,
-            )
-
-            await self.hass.services.async_call(
-                FAN_DOMAIN,
+            await self.async_service_call(
+                Platform.FAN,
                 SERVICE_TURN_ON if new_mode == STATE_ON else SERVICE_TURN_OFF,
                 {ATTR_ENTITY_ID: self.controlled_entity},
             )

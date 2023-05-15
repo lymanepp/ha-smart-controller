@@ -5,16 +5,18 @@ from collections.abc import MutableMapping
 from typing import Final
 
 import voluptuous as vol
-from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.fan import ATTR_PERCENTAGE_STEP
-from homeassistant.components.fan import DOMAIN as FAN_DOMAIN
 from homeassistant.components.input_boolean import DOMAIN as INPUT_BOOLEAN_DOMAIN
-from homeassistant.components.light import DOMAIN as LIGHT_DOMAIN
-from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
-from homeassistant.const import PERCENTAGE, STATE_OFF, STATE_ON, UnitOfTemperature
+from homeassistant.const import (
+    PERCENTAGE,
+    STATE_OFF,
+    STATE_ON,
+    Platform,
+    UnitOfTemperature,
+)
 from homeassistant.core import HomeAssistant, callback, split_entity_id
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.helpers import selector
@@ -65,9 +67,9 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             domain, _ = split_entity_id(self._controlled_entity)
 
             match domain:
-                case "fan":
+                case Platform.FAN:
                     return await self.async_step_fan()
-                case "light":
+                case Platform.LIGHT:
                     return await self.async_step_light()
 
         return self.async_show_form(
@@ -207,17 +209,17 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         self.original_data = data
 
     async def async_step_init(self, _: ConfigType = None) -> FlowResult:
-        """TODO."""
-        match [self.controller_type]:
-            case [ControllerType.CEILING_FAN]:
+        """Handle option flow 'init' step."""
+        match self.controller_type:
+            case ControllerType.CEILING_FAN:
                 return await self.async_step_ceiling_fan()
-            case [ControllerType.EXHAUST_FAN]:
+            case ControllerType.EXHAUST_FAN:
                 return await self.async_step_exhaust_fan()
-            case [ControllerType.LIGHT]:
+            case ControllerType.LIGHT:
                 return await self.async_step_light()
 
     async def async_step_ceiling_fan(self, user_input: ConfigType = None) -> FlowResult:
-        """TODO."""
+        """Handle option flow 'ceiling fan' step."""
         errors: ErrorsType = {}
 
         if user_input is not None:
@@ -235,7 +237,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         )
 
     async def async_step_exhaust_fan(self, user_input: ConfigType = None) -> FlowResult:
-        """TODO."""
+        """Handle option flow 'exhaust fan' step."""
         errors: ErrorsType = {}
 
         if user_input is not None:
@@ -251,7 +253,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         )
 
     async def async_step_light(self, user_input: ConfigType = None) -> FlowResult:
-        """TODO."""
+        """Handle option flow 'light' step."""
         errors: ErrorsType = {}
 
         if user_input is not None:
@@ -272,12 +274,15 @@ def make_controlled_entity_schema(
 ) -> vol.Schema:
     """Create 'user' config schema."""
 
-    controllable_entities = domain_entities(hass, [FAN_DOMAIN, LIGHT_DOMAIN])
+    already_controlled = [
+        entry.data.get(CommonConfig.CONTROLLED_ENTITY)
+        for entry in hass.config_entries.async_entries(DOMAIN)
+    ]
 
-    domain_data = hass.data.setdefault(DOMAIN, {})
+    controllable_entities = domain_entities(hass, [Platform.FAN, Platform.LIGHT])
 
     controllable_entities = sorted(
-        set(controllable_entities).difference(domain_data.keys())
+        set(controllable_entities).difference(already_controlled)
     )
 
     if not controllable_entities:
@@ -314,19 +319,19 @@ def make_ceiling_fan_schema(
 
     temp_sensors = domain_entities(
         hass,
-        [SENSOR_DOMAIN],
+        [Platform.SENSOR],
         device_class=SensorDeviceClass.TEMPERATURE,
     )
 
     humidity_sensors = domain_entities(
         hass,
-        [SENSOR_DOMAIN],
+        [Platform.SENSOR],
         device_class=SensorDeviceClass.HUMIDITY,
     )
 
     prerequisite_entities = domain_entities(
-        hass, [BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN]
-    ) + on_off_entities(hass, [FAN_DOMAIN])
+        hass, [Platform.BINARY_SENSOR, INPUT_BOOLEAN_DOMAIN]
+    ) + on_off_entities(hass, [Platform.FAN])
 
     prerequisite_entities = sorted(set(prerequisite_entities))
 
@@ -435,13 +440,13 @@ def make_exhaust_fan_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.
 
     temp_sensors = domain_entities(
         hass,
-        [SENSOR_DOMAIN],
+        [Platform.SENSOR],
         device_class=SensorDeviceClass.TEMPERATURE,
     )
 
     humidity_sensors = domain_entities(
         hass,
-        [SENSOR_DOMAIN],
+        [Platform.SENSOR],
         device_class=SensorDeviceClass.HUMIDITY,
     )
 
@@ -528,17 +533,17 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
 
     motion_sensors = domain_entities(
         hass,
-        [BINARY_SENSOR_DOMAIN],
+        [Platform.BINARY_SENSOR],
         device_class=BinarySensorDeviceClass.MOTION,
     )
 
     illuminance_sensors = domain_entities(
         hass,
-        [SENSOR_DOMAIN],
+        [Platform.SENSOR],
         device_class=SensorDeviceClass.ILLUMINANCE,
     )
 
-    blockers = domain_entities(hass, [BINARY_SENSOR_DOMAIN, INPUT_BOOLEAN_DOMAIN])
+    blockers = domain_entities(hass, [Platform.BINARY_SENSOR, INPUT_BOOLEAN_DOMAIN])
 
     return vol.Schema(
         {

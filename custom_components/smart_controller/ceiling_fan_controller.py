@@ -210,19 +210,20 @@ class CeilingFanController(BaseController):
             else 0
         )
         new_speed = int(
-            round(ssi_speed / speed_step, 0) * speed_step
+            round(int(ssi_speed / speed_step) * speed_step, 3)
             if self._prereq_state != STATE_OFF
             else 0
         )
 
         if new_speed != curr_speed:
             LOGGER.debug(
-                "%s; state=%s; changing speed to %.0f percent for SSI %.1f",
+                "%s; state=%s; changing speed to %d percent for SSI %.1f",
                 self.name,
                 self._state,
                 new_speed,
                 ssi,
             )
+
             await self.hass.services.async_call(
                 FAN_DOMAIN,
                 SERVICE_SET_PERCENTAGE,

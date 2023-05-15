@@ -9,6 +9,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     PERCENTAGE,
+    SERVICE_TURN_OFF,
+    SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
     STATE_UNAVAILABLE,
@@ -200,19 +202,17 @@ class ExhaustFanController(BaseController):
             new_mode = curr_mode
 
         if new_mode != curr_mode:
-            await self._call_set_mode(new_mode)
+            LOGGER.debug(
+                "%s; state=%s; changing mode to '%s'",
+                self.name,
+                self._state,
+                new_mode,
+            )
+
+            await self.hass.services.async_call(
+                FAN_DOMAIN,
+                SERVICE_TURN_ON if new_mode == STATE_ON else SERVICE_TURN_OFF,
+                {ATTR_ENTITY_ID: self.controlled_entity},
+            )
 
         return new_mode == STATE_ON
-
-    async def _call_set_mode(self, mode: str) -> None:
-        LOGGER.debug(
-            "%s; state=%s; changing mode to '%s'",
-            self.name,
-            self._state,
-            mode,
-        )
-        await self.hass.services.async_call(
-            FAN_DOMAIN,
-            f"turn_{mode}",
-            {ATTR_ENTITY_ID: self.controlled_entity},
-        )

@@ -109,10 +109,12 @@ class LightController(BaseController):
                 self.set_timer(self._auto_off_period)
 
             case (MyState.OFF, MyEvent.ON):
-                self.set_state(
-                    MyState.ON_MANUAL if self._manual_control_period else MyState.ON
-                )
-                self.set_timer(self._manual_control_period)
+                if self._manual_control_period:
+                    self.set_state(MyState.ON_MANUAL)
+                    self.set_timer(self._manual_control_period)
+                else:
+                    self.set_state(MyState.ON)
+                    self.set_timer(self._auto_off_period)
 
             case (MyState.OFF, MyEvent.MOTION):
                 if self.on_blocker:
@@ -130,17 +132,14 @@ class LightController(BaseController):
 
                 self.set_state(MyState.ON)
                 self.set_timer(self._auto_off_period)
-                await self.hass.services.async_call(
-                    LIGHT_DOMAIN,
-                    SERVICE_TURN_ON,
-                    {ATTR_ENTITY_ID: self.controlled_entity},
-                )
+                await self._set_light_mode(STATE_ON)
 
             case (MyState.ON, MyEvent.OFF):
-                self.set_state(
-                    MyState.OFF_MANUAL if self._manual_control_period else MyState.OFF
-                )
-                self.set_timer(self._manual_control_period)
+                if self._manual_control_period:
+                    self.set_state(MyState.OFF_MANUAL)
+                    self.set_timer(self._manual_control_period)
+                else:
+                    self.set_state(MyState.OFF)
 
             case (MyState.ON, MyEvent.MOTION):
                 self.set_timer(self._auto_off_period)
@@ -152,11 +151,7 @@ class LightController(BaseController):
                         return
 
                 self.set_state(MyState.OFF)
-                await self.hass.services.async_call(
-                    LIGHT_DOMAIN,
-                    SERVICE_TURN_OFF,
-                    {ATTR_ENTITY_ID: self.controlled_entity},
-                )
+                await self._set_light_mode(STATE_OFF)
 
             case (MyState.OFF_MANUAL, MyEvent.ON):
                 self.set_state(MyState.ON)
@@ -180,3 +175,17 @@ class LightController(BaseController):
                     self._state,
                     event,
                 )
+
+    async def _set_light_mode(self, mode: str):
+        LOGGER.debug(
+            "%s; state=%s; changing mode to '%s'",
+            self.name,
+            self._state,
+            mode,
+        )
+
+        await self.hass.services.async_call(
+            LIGHT_DOMAIN,
+            SERVICE_TURN_ON if mode == STATE_ON else SERVICE_TURN_OFF,
+            {ATTR_ENTITY_ID: self.controlled_entity},
+        )

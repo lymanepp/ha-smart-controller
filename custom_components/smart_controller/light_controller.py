@@ -65,9 +65,7 @@ class LightController(BaseController):
         )
 
         self._manual_control_period = (
-            timedelta(minutes=manual_control_minutes)
-            if manual_control_minutes
-            else None
+            timedelta(minutes=manual_control_minutes) if manual_control_minutes else None
         )
 
         self.tracked_entity_ids = remove_empty(
@@ -124,10 +122,7 @@ class LightController(BaseController):
 
                 if self.illuminance_sensor and self.illuminance_cutoff is not None:
                     illuminance = self.hass.states.get(self.illuminance_sensor)
-                    if (
-                        illuminance
-                        and float(illuminance.state) > self.illuminance_cutoff
-                    ):
+                    if illuminance and float(illuminance.state) > self.illuminance_cutoff:
                         return
 
                 await self._set_light_mode(STATE_ON)

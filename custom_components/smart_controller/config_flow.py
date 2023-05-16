@@ -166,9 +166,9 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: ErrorsType = {}
 
         if user_input is not None:
-            if user_input.get(
-                LightConfig.MANUAL_CONTROL_MINUTES
-            ) and not user_input.get(LightConfig.MOTION_SENSOR):
+            if user_input.get(LightConfig.MANUAL_CONTROL_MINUTES) and not user_input.get(
+                LightConfig.MOTION_SENSOR
+            ):
                 errors["base"] = "manual_control_no_motion"
 
             unique_id = f"{DOMAIN}__" + slugify(self._controlled_entity)
@@ -557,9 +557,7 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
             # manual control minutes (this is only valid with motion sensor)
             vol.Optional(
                 str(LightConfig.MANUAL_CONTROL_MINUTES),
-                default=user_input.get(
-                    LightConfig.MANUAL_CONTROL_MINUTES, vol.UNDEFINED
-                ),
+                default=user_input.get(LightConfig.MANUAL_CONTROL_MINUTES, vol.UNDEFINED),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0,

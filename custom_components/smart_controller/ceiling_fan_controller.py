@@ -11,7 +11,6 @@ from homeassistant.components.fan import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_ENTITY_ID,
     PERCENTAGE,
     STATE_OFF,
     STATE_ON,
@@ -23,7 +22,7 @@ from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
 from homeassistant.helpers.event import async_track_time_interval
 
 from .base_controller import BaseController
-from .const import LOGGER, CeilingFanConfig
+from .const import _LOGGER, CeilingFanConfig
 from .util import extrapolate_value, remove_empty, state_with_unit, summer_simmer_index
 
 IGNORE_STATES = (STATE_UNKNOWN, STATE_UNAVAILABLE)
@@ -129,11 +128,11 @@ class CeilingFanController(BaseController):
         self,
         now: datetime,  # noqa: 501  pylint: disable=unused-argument
     ) -> None:
-        LOGGER.debug("%s; state=%s; polling for changes", self.name, self._state)
+        _LOGGER.debug("%s; state=%s; polling for changes", self.name, self._state)
         await self._process_event(MyEvent.UPDATE_FAN_SPEED)
 
     async def _process_event(self, event: MyEvent) -> None:
-        LOGGER.debug(
+        _LOGGER.debug(
             "%s; state=%s; processing '%s' event",
             self.name,
             self._state,
@@ -186,7 +185,7 @@ class CeilingFanController(BaseController):
                 self.set_state(MyState.ON if fan_on else MyState.OFF)
 
             case _:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "%s; state=%s; ignored '%s' event",
                     self.name,
                     self._state,
@@ -217,7 +216,7 @@ class CeilingFanController(BaseController):
         )
 
         if new_speed != curr_speed:
-            LOGGER.debug(
+            _LOGGER.debug(
                 "%s; state=%s; changing speed to %d percent for SSI=%.1f",
                 self.name,
                 self._state,
@@ -228,7 +227,7 @@ class CeilingFanController(BaseController):
             await self.async_service_call(
                 Platform.FAN,
                 SERVICE_SET_PERCENTAGE,
-                {ATTR_ENTITY_ID: self.controlled_entity, ATTR_PERCENTAGE: new_speed},
+                {ATTR_PERCENTAGE: new_speed},
             )
 
         return new_speed > 0

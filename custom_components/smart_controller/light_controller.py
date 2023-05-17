@@ -6,7 +6,6 @@ from datetime import timedelta
 from homeassistant.backports.enum import StrEnum
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_ENTITY_ID,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_OFF,
@@ -18,7 +17,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, State
 
 from .base_controller import BaseController
-from .const import LOGGER, LightConfig
+from .const import _LOGGER, LightConfig
 from .util import remove_empty
 
 IGNORE_STATES = (STATE_UNKNOWN, STATE_UNAVAILABLE)
@@ -68,6 +67,15 @@ class LightController(BaseController):
             timedelta(minutes=manual_control_minutes) if manual_control_minutes else None
         )
 
+        # TODO: occupancy and illuminance controlled lights
+        # Modes:
+        # 1a) Motion lights with illuminance and "on" blockers (motion and timer == occupancy)
+        # 1b) Occupancy lights with illuminance and "on" blockers
+        # 2) Illuminance lights (driveway)
+        # 3) Manual lights with timer for auto-off
+
+        # TODO: illuminance blocker should only be considered when light is "off"
+
         self.tracked_entity_ids = remove_empty(
             [
                 self.controlled_entity,
@@ -91,7 +99,7 @@ class LightController(BaseController):
         await self._process_event(MyEvent.TIMER)
 
     async def _process_event(self, event: MyEvent) -> None:
-        LOGGER.debug(
+        _LOGGER.debug(
             "%s; state=%s; processing '%s' event",
             self.name,
             self._state,
@@ -164,7 +172,7 @@ class LightController(BaseController):
                 self.set_timer(self._auto_off_period)
 
             case _:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "%s; state=%s; ignored '%s' event",
                     self.name,
                     self._state,
@@ -175,5 +183,4 @@ class LightController(BaseController):
         await self.async_service_call(
             Platform.LIGHT,
             SERVICE_TURN_ON if mode == STATE_ON else SERVICE_TURN_OFF,
-            {ATTR_ENTITY_ID: self.controlled_entity},
         )

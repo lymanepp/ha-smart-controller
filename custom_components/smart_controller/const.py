@@ -4,7 +4,7 @@ from typing import Final
 
 from homeassistant.backports.enum import StrEnum
 
-LOGGER: Logger = getLogger(__package__)
+_LOGGER: Logger = getLogger(__package__)
 
 NAME: Final = "Smart Controller"
 DOMAIN: Final = "smart_controller"

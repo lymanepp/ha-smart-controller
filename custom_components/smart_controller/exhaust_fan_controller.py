@@ -6,7 +6,6 @@ from datetime import timedelta
 from homeassistant.backports.enum import StrEnum
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_ENTITY_ID,
     PERCENTAGE,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
@@ -19,7 +18,7 @@ from homeassistant.const import (
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
 
 from .base_controller import BaseController
-from .const import LOGGER, ExhaustFanConfig
+from .const import _LOGGER, ExhaustFanConfig
 from .util import absolute_humidity, remove_empty, state_with_unit
 
 IGNORE_STATES = (STATE_UNKNOWN, STATE_UNAVAILABLE)
@@ -121,7 +120,7 @@ class ExhaustFanController(BaseController):
         await self._process_event(MyEvent.TIMER)
 
     async def _process_event(self, event: MyEvent) -> None:
-        LOGGER.debug(
+        _LOGGER.debug(
             "%s; state=%s; processing '%s' event",
             self.name,
             self._state,
@@ -174,7 +173,7 @@ class ExhaustFanController(BaseController):
                 self.set_state(MyState.ON if fan_on else MyState.OFF)
 
             case _:
-                LOGGER.debug(
+                _LOGGER.debug(
                     "%s; state=%s; ignored '%s' event",
                     self.name,
                     self._state,
@@ -203,7 +202,6 @@ class ExhaustFanController(BaseController):
             await self.async_service_call(
                 Platform.FAN,
                 SERVICE_TURN_ON if new_mode == STATE_ON else SERVICE_TURN_OFF,
-                {ATTR_ENTITY_ID: self.controlled_entity},
             )
 
         return new_mode == STATE_ON

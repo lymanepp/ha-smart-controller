@@ -6,22 +6,21 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
-from homeassistant.core import (
-    CALLBACK_TYPE,
-    SERVICE_CALL_LIMIT,
-    Context,
-    Event,
-    HomeAssistant,
-    State,
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    STATE_OFF,
+    STATE_ON,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
 )
+from homeassistant.core import CALLBACK_TYPE, Context, Event, HomeAssistant, State
 from homeassistant.helpers.event import (
     async_track_point_in_utc_time,
     async_track_state_change_event,
 )
 from homeassistant.util import dt
 
-from .const import LOGGER, CommonConfig
+from .const import _LOGGER, CommonConfig
 
 
 class MyContext(Context):
@@ -59,7 +58,7 @@ class BaseController:
                     self.name = state.name
                 await self._on_state_change(state)
             else:
-                LOGGER.warning(
+                _LOGGER.warning(
                     "%s; referenced entity '%s' is missing.", self.name, entity_id
                 )
 
@@ -88,7 +87,7 @@ class BaseController:
         if state is None or state.state in IGNORE_STATES:
             return
 
-        LOGGER.debug(
+        _LOGGER.debug(
             "%s; state=%s; %s changed to '%s'",
             self.name,
             self._state,
@@ -109,14 +108,14 @@ class BaseController:
             self._unsubscribers.remove(self._timer_unsub)
             self._timer_unsub()
             self._timer_unsub = None
-            LOGGER.debug("%s; state=%s; canceled timer", self.name, self._state)
+            _LOGGER.debug("%s; state=%s; canceled timer", self.name, self._state)
 
         if period is not None:
             self._timer_unsub = async_track_point_in_utc_time(
                 self.hass, timer_expired, dt.utcnow() + period
             )
             self._unsubscribers.append(self._timer_unsub)
-            LOGGER.debug(
+            _LOGGER.debug(
                 "%s; state=%s; started timer for '%s'",
                 self.name,
                 self._state,
@@ -125,7 +124,7 @@ class BaseController:
 
     def set_state(self, new_state: str):
         """Change the current state."""
-        LOGGER.debug(
+        _LOGGER.debug(
             "%s; state=%s; changing state to '%s'",
             self.name,
             self._state,
@@ -146,12 +145,10 @@ class BaseController:
         domain: str,
         service: str,
         service_data: dict[str, Any] | None = None,
-        limit: float | None = SERVICE_CALL_LIMIT,
-        target: dict[str, Any] | None = None,
     ) -> bool | None:
         """Call a service."""
 
-        LOGGER.debug(
+        _LOGGER.debug(
             "%s; state=%s; calling '%s.%s' service",
             self.name,
             self._state,
@@ -163,7 +160,6 @@ class BaseController:
             domain,
             service,
             service_data,
+            target={ATTR_ENTITY_ID: self.controlled_entity},
             context=MyContext(),
-            limit=limit,
-            target=target,
         )

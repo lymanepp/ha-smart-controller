@@ -55,23 +55,25 @@ def state_with_unit(state: State, default_unit: str) -> tuple[float, str]:
 
 
 def extrapolate_value(
-    value: float,
+    source_value: float,
     source_range: tuple[float, float],
     target_range: tuple[float, float],
     low_default: float | None = None,
     high_default: float | None = None,
 ):
     """Extrapolate a value in the target range from a value in the source range."""
-    if value < source_range[0]:
+    if source_value < source_range[0]:
         return target_range[0] if low_default is None else low_default
 
-    if value > source_range[1]:
+    if source_value > source_range[1]:
         return target_range[1] if high_default is None else high_default
 
-    return percentage_to_ranged_value(
+    target_value = percentage_to_ranged_value(
         target_range,
-        ranged_value_to_percentage(source_range, value),
+        ranged_value_to_percentage(source_range, source_value),
     )
+
+    return min(target_range[1], max(target_range[0], target_value))
 
 
 def domain_entities(

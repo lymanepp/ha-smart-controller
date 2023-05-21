@@ -77,7 +77,9 @@ class CeilingFanController(BaseController):
 
         manual_control_minutes = self.data.get(CeilingFanConfig.MANUAL_CONTROL_MINUTES)
         self._manual_control_period = (
-            timedelta(minutes=manual_control_minutes) if manual_control_minutes else None
+            timedelta(minutes=manual_control_minutes)
+            if manual_control_minutes
+            else None
         )
 
         self.tracked_entity_ids = remove_empty(

@@ -114,5 +114,13 @@
         "abort": {
             "already_configured": "An integration with the same fan already exists."
         }
+    },
+    "selector": {
+        "fan_type": {
+            "options": {
+                "ceiling_fan": "Ceiling fan controlled for comfort",
+                "exhaust_fan": "Exhaust fan controlled for humidity"
+            }
+        }
     }
 }

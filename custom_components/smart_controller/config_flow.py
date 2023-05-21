@@ -20,6 +20,11 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback, split_entity_id
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.helpers import selector
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
 from homeassistant.util.unit_conversion import TemperatureConverter
@@ -303,13 +308,22 @@ def make_controlled_entity_schema(
 def make_fan_schema(_: ConfigType) -> vol.Schema:
     """Create 'fan' config schema."""
 
-    # TODO: can the descriptions be moved to translations?!
-    fan_types = {
-        ControllerType.CEILING_FAN: "Ceiling fan controlled for comfort",
-        ControllerType.EXHAUST_FAN: "Exhaust fan controlled for humidity",
-    }
+    fan_types = [
+        ControllerType.CEILING_FAN,
+        ControllerType.EXHAUST_FAN,
+    ]
 
-    return vol.Schema({vol.Required(FAN_TYPE): vol.In(fan_types)})
+    return vol.Schema(
+        {
+            vol.Required(FAN_TYPE): SelectSelector(
+                SelectSelectorConfig(
+                    options=fan_types,
+                    mode=SelectSelectorMode.LIST,
+                    translation_key="fan_type",  # TODO: create constant
+                )
+            )
+        }
+    )
 
 
 def make_ceiling_fan_schema(

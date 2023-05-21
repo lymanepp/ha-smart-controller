@@ -68,7 +68,9 @@ class BaseController:
                 await self._on_state_change(event.data["new_state"])
 
         self._unsubscribers.append(
-            async_track_state_change_event(hass, self.tracked_entity_ids, on_state_event)
+            async_track_state_change_event(
+                hass, self.tracked_entity_ids, on_state_event
+            )
         )
 
         def remove_listeners() -> None:

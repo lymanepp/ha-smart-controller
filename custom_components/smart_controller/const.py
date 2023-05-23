@@ -3,12 +3,15 @@ from logging import Logger, getLogger
 from typing import Final
 
 from homeassistant.backports.enum import StrEnum
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 
 _LOGGER: Logger = getLogger(__package__)
 
-NAME: Final = "Smart Controller"
 DOMAIN: Final = "smart_controller"
-VERSION: Final = "0.0.0"
+NAME: Final = "Smart Controller"
+
+IGNORE_STATES: Final = (STATE_UNKNOWN, STATE_UNAVAILABLE)
+ON_OFF_STATES: Final = (STATE_ON, STATE_OFF)
 
 GRAMS_PER_CUBIC_METER: Final = "g/m³"
 
@@ -26,6 +29,7 @@ class ControllerType(StrEnum):
     CEILING_FAN = "ceiling_fan"
     EXHAUST_FAN = "exhaust_fan"
     LIGHT = "light"
+    OCCUPANCY = "occupancy"
 
 
 class CommonConfig(StrEnum):
@@ -73,3 +77,14 @@ class LightConfig(StrEnum):
     ILLUMINANCE_SENSOR = "illuminance_sensor"
     ON_BLOCKER_ENTITY = "on_blocker_entity"
     OFF_BLOCKER_ENTITY = "off_blocker_entity"
+
+
+class OccupancyConfig(StrEnum):
+    """Occupancy configuration."""
+
+    SENSOR_NAME = "sensor_name"
+    MOTION_SENSORS = "motion_sensors"
+    MOTION_OFF_MINUTES = "motion_off_minutes"
+    DOOR_SENSORS = "door_sensors"
+    REQUIRED_ENTITIES = "required_entities"
+    OTHER_ENTITIES = "other_entities"

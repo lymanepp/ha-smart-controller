@@ -2,23 +2,19 @@
     "config": {
         "step": {
             "user": {
-                "title": "Choose something to control",
-                "description": "Choose a fan or light to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
-                "data": {
-                    "controlled_entity": "Something to control"
-                }
-            },
-            "fan": {
                 "title": "Configure fan operating mode",
-                "description": "Configure the fan operating mode.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
-                "data": {
-                    "ceiling_fan": "Ceiling fan",
-                    "exhaust_fan": "Exhaust fan"
-                }
+                "description": "Configure the fan operating mode.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller"
             },
             "ceiling_fan": {
+                "title": "Choose a fan to control",
+                "description": "Choose a fan to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "data": {
+                    "controlled_entity": "Fan entity"
+                }
+            },
+            "ceiling_fan_options": {
                 "title": "Configure ceiling fan controller",
-                "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "temp_sensor": "Temperature sensor",
                     "humidity_sensor": "Humidity sensor",
@@ -31,8 +27,15 @@
                 }
             },
             "exhaust_fan": {
+                "title": "Choose a fan to control",
+                "description": "Choose a fan to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "data": {
+                    "controlled_entity": "Fan entity"
+                }
+            },
+            "exhaust_fan_options": {
                 "title": "Configure exhaust fan controller",
-                "description": "Configure the exhaust fan controller. If you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "description": "Configure the exhaust fan controller. If you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "temp_sensor": "Temperature sensor",
                     "humidity_sensor": "Humidity sensor",
@@ -44,8 +47,15 @@
                 }
             },
             "light": {
+                "title": "Choose a light to control",
+                "description": "Choose a light to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "data": {
+                    "controlled_entity": "Light entity"
+                }
+            },
+            "light_options": {
                 "title": "Configure light options",
-                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "motion_sensor": "Motion sensor (optional)",
                     "auto_off_minutes": "Auto off (optional)",
@@ -55,10 +65,23 @@
                     "on_blocker_entity": "Block turning on light (optional)",
                     "off_blocker_entity": "Block turning off light (optional)"
                 }
+            },
+            "occupancy": {
+                "title": "Configure occupancy sensor",
+                "description": "Create an occupancy sensor based on motion sensor(s) and, optionally, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "data": {
+                    "sensor_name": "Occupancy sensor name",
+                    "motion_sensors": "Occupancy will be detected for specified time whenever motion is detected by these sensors.",
+                    "motion_off_minutes": "Motion minutes.",
+                    "door_sensors": "OPTIONAL: Occupancy will be detected if motion is seen in a room while these doors are closed--even if motion stops.",
+                    "required_entities": "OPTIONAL: These must all be 'on' before occupancy will be detected.",
+                    "other_entities": "OPTIONAL: Occupancy will be detected if any of these are 'on'."
+                }
             }
         },
         "error": {
-            "manual_control_no_motion": "Manual control requires a motion sensor."
+            "manual_control_no_motion": "Manual control requires a motion sensor.",
+            "duplicate_name": "An integration with the same name already exists."
         },
         "abort": {
             "nothing_to_control": "No entities are available to control",
@@ -69,7 +92,7 @@
         "step": {
             "ceiling_fan": {
                 "title": "Configure ceiling fan controller",
-                "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "temp_sensor": "Temperature sensor",
                     "humidity_sensor": "Humidity sensor",
@@ -83,7 +106,7 @@
             },
             "exhaust_fan": {
                 "title": "Configure exhaust fan controller",
-                "description": "Turn a fan on and off based on the difference in absolute humidity (g/m³) between temperature and humidity sensors in one area and reference temperature and humidity sensors in another area.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "description": "Turn a fan on and off based on the difference in absolute humidity (g/m³) between temperature and humidity sensors in one area and reference temperature and humidity sensors in another area.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "temp_sensor": "Temperature sensor",
                     "humidity_sensor": "Humidity sensor",
@@ -96,7 +119,7 @@
             },
             "light": {
                 "title": "Configure light controller",
-                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-light-controller",
+                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "motion_sensor": "Motion sensor (optional)",
                     "auto_off_minutes": "Auto off (optional)",
@@ -105,6 +128,18 @@
                     "illuminance_cutoff": "Illuminance cutoff (optional)",
                     "on_blocker_entity": "Block turning on light (optional)",
                     "off_blocker_entity": "Block turning off light (optional)"
+                }
+            },
+            "occupancy": {
+                "title": "Configure occupancy sensor",
+                "description": "Create an occupancy sensor based on motion sensor(s) and, optionally, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "data": {
+                    "sensor_name": "Occupancy sensor name",
+                    "motion_sensors": "Occupancy will be detected for specified time whenever motion is detected by these sensors.",
+                    "motion_off_minutes": "Motion minutes.",
+                    "door_sensors": "OPTIONAL: Occupancy will be detected if motion is seen in a room while these doors are closed--even if motion stops.",
+                    "required_entities": "OPTIONAL: These must all be 'on' before occupancy will be detected.",
+                    "other_entities": "OPTIONAL: Occupancy will be detected if any of these are 'on'."
                 }
             }
         },
@@ -116,10 +151,12 @@
         }
     },
     "selector": {
-        "fan_type": {
+        "type": {
             "options": {
-                "ceiling_fan": "Ceiling fan controlled for comfort",
-                "exhaust_fan": "Exhaust fan controlled for humidity"
+                "ceiling_fan": "Automatically control a ceiling fan for maximum comfort.",
+                "exhaust_fan": "Automatically control an exhaust fan to remove humidity.",
+                "light": "Automatically control a light based on occupancy and illuminance.",
+                "occupancy": "Create occupancy sensors based on multiple factors including motion."
             }
         }
     }

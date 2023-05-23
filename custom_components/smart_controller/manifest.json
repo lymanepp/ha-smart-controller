@@ -6,7 +6,7 @@
   ],
   "config_flow": true,
   "documentation": "https://github.com/lymanepp/ha-smart-controller",
-  "iot_class": "local_push",
+  "iot_class": "calculated",
   "issue_tracker": "https://github.com/lymanepp/ha-smart-controller/issues",
-  "version": "0.0.0"
+  "version": "0.0.1"
 }

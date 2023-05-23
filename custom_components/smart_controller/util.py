@@ -7,8 +7,6 @@ from homeassistant import util
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
-    STATE_OFF,
-    STATE_ON,
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
@@ -20,7 +18,7 @@ from homeassistant.util.percentage import (
 )
 from homeassistant.util.unit_conversion import TemperatureConverter
 
-ON_OFF = (STATE_ON, STATE_OFF)
+from .const import ON_OFF_STATES
 
 
 def absolute_humidity(temp: tuple[float, str], hum: float):
@@ -79,9 +77,12 @@ def extrapolate_value(
 def domain_entities(
     hass: HomeAssistant,
     domains: Iterable[str],
-    device_class: str | None = None,
+    device_classes: str | Iterable[str] | None = None,
 ) -> list[str]:
     """Get list of matching entities."""
+
+    if isinstance(device_classes, str):
+        device_classes = [device_classes]
 
     entity_ids = set()
     ent_reg = entity_registry.async_get(hass)
@@ -89,8 +90,8 @@ def domain_entities(
     for state in hass.states.async_all(domains):
         entity = ent_reg.async_get(state.entity_id)
         if (entity is None or not entity.hidden) and (
-            device_class is None
-            or device_class == state.attributes.get(ATTR_DEVICE_CLASS)
+            device_classes is None
+            or state.attributes.get(ATTR_DEVICE_CLASS) in device_classes
         ):
             entity_ids.add(state.entity_id)
 
@@ -107,7 +108,7 @@ def on_off_entities(
     ent_reg = entity_registry.async_get(hass)
 
     for state in hass.states.async_all():
-        if state.domain not in excluded_domains and state.state in ON_OFF:
+        if state.domain not in excluded_domains and state.state in ON_OFF_STATES:
             entity = ent_reg.async_get(state.entity_id)
             if entity is None or not entity.hidden:
                 entity_ids.add(state.entity_id)

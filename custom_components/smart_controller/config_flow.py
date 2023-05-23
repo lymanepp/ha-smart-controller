@@ -10,14 +10,8 @@ from homeassistant.components.fan import ATTR_PERCENTAGE_STEP
 from homeassistant.components.input_boolean import DOMAIN as INPUT_BOOLEAN_DOMAIN
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
-from homeassistant.const import (
-    PERCENTAGE,
-    STATE_OFF,
-    STATE_ON,
-    Platform,
-    UnitOfTemperature,
-)
-from homeassistant.core import HomeAssistant, callback, split_entity_id
+from homeassistant.const import PERCENTAGE, Platform, UnitOfTemperature
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.helpers import selector
 from homeassistant.helpers.selector import (
@@ -42,12 +36,11 @@ from .const import (
     ControllerType,
     ExhaustFanConfig,
     LightConfig,
+    OccupancyConfig,
 )
 from .util import domain_entities, on_off_entities
 
 ErrorsType = MutableMapping[str, str]
-
-ON_OFF = (STATE_ON, STATE_OFF)
 
 FAN_TYPE: Final = "fan_type"
 
@@ -67,23 +60,17 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: ErrorsType = {}
 
         if user_input is not None:
-            self._controlled_entity = user_input[CommonConfig.CONTROLLED_ENTITY]
-
-            domain, _ = split_entity_id(self._controlled_entity)
-
-            match domain:
-                case Platform.FAN:
-                    return await self.async_step_fan()
-                case Platform.LIGHT:
-                    return await self.async_step_light()
+            controller_type = user_input["type"]
+            step_method = getattr(self, f"async_step_{controller_type}")
+            return await step_method()
 
         return self.async_show_form(
             step_id="user",
-            data_schema=make_controlled_entity_schema(self.hass, user_input or {}),
+            data_schema=make_user_schema(user_input or {}),
             errors=errors,
         )
 
-    async def async_step_fan(
+    async def async_step_ceiling_fan(
         self,
         user_input: ConfigType | None = None,
     ) -> FlowResult:
@@ -91,17 +78,18 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: ErrorsType = {}
 
         if user_input is not None:
-            fan_type = user_input[FAN_TYPE]
-            step_method = getattr(self, f"async_step_{fan_type}")
-            return await step_method()
+            self._controlled_entity = user_input[CommonConfig.CONTROLLED_ENTITY]
+            return await self.async_step_ceiling_fan_options()
 
         return self.async_show_form(
-            step_id="fan",
-            data_schema=make_fan_schema(user_input or {}),
+            step_id="ceiling_fan",
+            data_schema=make_controlled_entity_schema(
+                self.hass, user_input or {}, Platform.FAN
+            ),
             errors=errors,
         )
 
-    async def async_step_ceiling_fan(
+    async def async_step_ceiling_fan_options(
         self,
         user_input: ConfigType | None = None,
     ) -> FlowResult:
@@ -126,14 +114,33 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(title=state.name, data=data)
 
         return self.async_show_form(
-            step_id="ceiling_fan",
-            data_schema=make_ceiling_fan_schema(
+            step_id="ceiling_fan_options",
+            data_schema=make_ceiling_fan_options_schema(
                 self.hass, user_input or {}, self._controlled_entity
             ),
             errors=errors,
         )
 
     async def async_step_exhaust_fan(
+        self,
+        user_input: ConfigType | None = None,
+    ) -> FlowResult:
+        """Handle a flow initialized by the user."""
+        errors: ErrorsType = {}
+
+        if user_input is not None:
+            self._controlled_entity = user_input[CommonConfig.CONTROLLED_ENTITY]
+            return await self.async_step_exhaust_fan_options()
+
+        return self.async_show_form(
+            step_id="exhaust_fan",
+            data_schema=make_controlled_entity_schema(
+                self.hass, user_input or {}, Platform.FAN
+            ),
+            errors=errors,
+        )
+
+    async def async_step_exhaust_fan_options(
         self,
         user_input: ConfigType | None = None,
     ) -> FlowResult:
@@ -158,12 +165,31 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(title=state.name, data=data)
 
         return self.async_show_form(
-            step_id="exhaust_fan",
-            data_schema=make_exhaust_fan_schema(self.hass, user_input or {}),
+            step_id="exhaust_fan_options",
+            data_schema=make_exhaust_fan_options_schema(self.hass, user_input or {}),
             errors=errors,
         )
 
     async def async_step_light(
+        self,
+        user_input: ConfigType | None = None,
+    ) -> FlowResult:
+        """Handle a flow initialized by the user."""
+        errors: ErrorsType = {}
+
+        if user_input is not None:
+            self._controlled_entity = user_input[CommonConfig.CONTROLLED_ENTITY]
+            return await self.async_step_light_options()
+
+        return self.async_show_form(
+            step_id="light",
+            data_schema=make_controlled_entity_schema(
+                self.hass, user_input or {}, Platform.LIGHT
+            ),
+            errors=errors,
+        )
+
+    async def async_step_light_options(
         self,
         user_input: ConfigType | None = None,
     ) -> FlowResult:
@@ -191,8 +217,37 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(title=state.name, data=data)
 
         return self.async_show_form(
-            step_id="light",
-            data_schema=make_light_schema(self.hass, user_input or {}),
+            step_id="light_options",
+            data_schema=make_light_options_schema(self.hass, user_input or {}),
+            errors=errors,
+        )
+
+    async def async_step_occupancy(
+        self,
+        user_input: ConfigType | None = None,
+    ) -> FlowResult:
+        """Handle a flow initialized by the user."""
+        errors: ErrorsType = {}
+
+        if user_input is not None:
+            sensor_name = user_input[OccupancyConfig.SENSOR_NAME]
+            unique_id = f"{DOMAIN}__{ControllerType.OCCUPANCY}__" + slugify(sensor_name)
+
+            if await self.async_set_unique_id(unique_id):
+                errors["base"] = "duplicate_name"
+            else:
+                self._abort_if_unique_id_configured()
+
+                data = {
+                    CommonConfig.TYPE: ControllerType.OCCUPANCY,
+                    **user_input,
+                }
+
+                return self.async_create_entry(title=sensor_name, data=data)
+
+        return self.async_show_form(
+            step_id="occupancy",
+            data_schema=make_occupancy_schema(self.hass, user_input or {}),
             errors=errors,
         )
 
@@ -210,7 +265,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         """Initialize options flow."""
         data = config_entry.data | config_entry.options
         self.controller_type = data.pop(CommonConfig.TYPE)
-        self.controlled_entity = data.pop(CommonConfig.CONTROLLED_ENTITY)
+        self.controlled_entity = data.pop(CommonConfig.CONTROLLED_ENTITY, None)
         self.original_data = data
 
     async def async_step_init(self, _: ConfigType = None) -> FlowResult:
@@ -222,6 +277,8 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
                 return await self.async_step_exhaust_fan()
             case ControllerType.LIGHT:
                 return await self.async_step_light()
+            case ControllerType.OCCUPANCY:
+                return await self.async_step_occupancy()
 
     async def async_step_ceiling_fan(self, user_input: ConfigType = None) -> FlowResult:
         """Handle option flow 'ceiling fan' step."""
@@ -235,7 +292,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
         return self.async_show_form(
             step_id="ceiling_fan",
-            data_schema=make_ceiling_fan_schema(
+            data_schema=make_ceiling_fan_options_schema(
                 self.hass, schema_data, self.controlled_entity
             ),
             errors=errors,
@@ -253,7 +310,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
         return self.async_show_form(
             step_id="exhaust_fan",
-            data_schema=make_exhaust_fan_schema(self.hass, schema_data),
+            data_schema=make_exhaust_fan_options_schema(self.hass, schema_data),
             errors=errors,
         )
 
@@ -269,28 +326,60 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
         return self.async_show_form(
             step_id="light",
-            data_schema=make_light_schema(self.hass, schema_data),
+            data_schema=make_light_options_schema(self.hass, schema_data),
+            errors=errors,
+        )
+
+    async def async_step_occupancy(self, user_input: ConfigType = None) -> FlowResult:
+        """Handle option flow 'occupancy' step."""
+        errors: ErrorsType = {}
+
+        if user_input is not None:
+            sensor_name = user_input[OccupancyConfig.SENSOR_NAME]
+            return self.async_create_entry(title=sensor_name, data=user_input)
+
+        schema_data = user_input or self.original_data
+
+        return self.async_show_form(
+            step_id="occupancy",
+            data_schema=make_occupancy_schema(self.hass, schema_data),
             errors=errors,
         )
 
 
-def make_controlled_entity_schema(
-    hass: HomeAssistant, user_input: ConfigType
-) -> vol.Schema:
-    """Create 'user' config schema."""
+def make_user_schema(_: ConfigType) -> vol.Schema:
+    """Create 'fan' config schema."""
 
-    already_controlled = [
-        entry.data.get(CommonConfig.CONTROLLED_ENTITY)
-        for entry in hass.config_entries.async_entries(DOMAIN)
+    types = [
+        ControllerType.CEILING_FAN,
+        ControllerType.EXHAUST_FAN,
+        ControllerType.LIGHT,
+        ControllerType.OCCUPANCY,
     ]
 
-    controllable_entities = domain_entities(hass, [Platform.FAN, Platform.LIGHT])
-
-    controllable_entities = sorted(
-        set(controllable_entities).difference(already_controlled)
+    return vol.Schema(
+        {
+            vol.Required(str(CommonConfig.TYPE)): SelectSelector(
+                SelectSelectorConfig(
+                    options=types,
+                    mode=SelectSelectorMode.LIST,
+                    translation_key=CommonConfig.TYPE,
+                )
+            )
+        }
     )
 
-    if not controllable_entities:
+
+def make_controlled_entity_schema(
+    hass: HomeAssistant, user_input: ConfigType, domain: str
+) -> vol.Schema:
+    """Create 'controlled_entity' config schema."""
+
+    entities = set(domain_entities(hass, domain))
+    entities.difference_update(controlled_entities(hass))
+    entities = sorted(entities)
+
+    if not entities:
         raise AbortFlow("nothing_to_control")
 
     return vol.Schema(
@@ -299,34 +388,13 @@ def make_controlled_entity_schema(
                 str(CommonConfig.CONTROLLED_ENTITY),
                 default=user_input.get(CommonConfig.CONTROLLED_ENTITY, vol.UNDEFINED),
             ): selector.EntitySelector(
-                selector.EntitySelectorConfig(include_entities=controllable_entities),
+                selector.EntitySelectorConfig(include_entities=entities),
             ),
         }
     )
 
 
-def make_fan_schema(_: ConfigType) -> vol.Schema:
-    """Create 'fan' config schema."""
-
-    fan_types = [
-        ControllerType.CEILING_FAN,
-        ControllerType.EXHAUST_FAN,
-    ]
-
-    return vol.Schema(
-        {
-            vol.Required(FAN_TYPE): SelectSelector(
-                SelectSelectorConfig(
-                    options=fan_types,
-                    mode=SelectSelectorMode.LIST,
-                    translation_key="fan_type",  # TODO: create constant
-                )
-            )
-        }
-    )
-
-
-def make_ceiling_fan_schema(
+def make_ceiling_fan_options_schema(
     hass: HomeAssistant, user_input: ConfigType, controlled_entity: str
 ) -> vol.Schema:
     """Create 'ceiling_fan' config schema."""
@@ -334,13 +402,13 @@ def make_ceiling_fan_schema(
     temp_sensors = domain_entities(
         hass,
         [Platform.SENSOR],
-        device_class=SensorDeviceClass.TEMPERATURE,
+        device_classes=SensorDeviceClass.TEMPERATURE,
     )
 
     humidity_sensors = domain_entities(
         hass,
         [Platform.SENSOR],
-        device_class=SensorDeviceClass.HUMIDITY,
+        device_classes=SensorDeviceClass.HUMIDITY,
     )
 
     prerequisite_entities = domain_entities(
@@ -351,6 +419,18 @@ def make_ceiling_fan_schema(
 
     fan_state = hass.states.get(controlled_entity)
     speed_step = fan_state.attributes.get(ATTR_PERCENTAGE_STEP, 100)
+
+    default_ssi_min = TemperatureConverter.convert(
+        DEFAULT_CEILING_SSI_MIN,
+        UnitOfTemperature.FAHRENHEIT,
+        hass.config.units.temperature_unit,
+    )
+
+    default_ssi_max = TemperatureConverter.convert(
+        DEFAULT_CEILING_SSI_MAX,
+        UnitOfTemperature.FAHRENHEIT,
+        hass.config.units.temperature_unit,
+    )
 
     speed_selector = selector.NumberSelector(
         selector.NumberSelectorConfig(
@@ -369,16 +449,13 @@ def make_ceiling_fan_schema(
         ),
     )
 
-    default_ssi_min = TemperatureConverter.convert(
-        DEFAULT_CEILING_SSI_MIN,
-        UnitOfTemperature.FAHRENHEIT,
-        hass.config.units.temperature_unit,
-    )
-
-    default_ssi_max = TemperatureConverter.convert(
-        DEFAULT_CEILING_SSI_MAX,
-        UnitOfTemperature.FAHRENHEIT,
-        hass.config.units.temperature_unit,
+    minutes_selector = selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=0,
+            max=60,
+            unit_of_measurement="minutes",
+            mode=selector.NumberSelectorMode.SLIDER,
+        ),
     )
 
     return vol.Schema(
@@ -437,31 +514,26 @@ def make_ceiling_fan_schema(
                     ExhaustFanConfig.MANUAL_CONTROL_MINUTES,
                     vol.UNDEFINED,
                 ),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0,
-                    max=60,
-                    unit_of_measurement="minutes",
-                    mode=selector.NumberSelectorMode.SLIDER,
-                ),
-            ),
+            ): vol.All(minutes_selector, vol.Coerce(int)),
         }
     )
 
 
-def make_exhaust_fan_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema:
+def make_exhaust_fan_options_schema(
+    hass: HomeAssistant, user_input: ConfigType
+) -> vol.Schema:
     """Create 'exhaust_fan' config schema."""
 
     temp_sensors = domain_entities(
         hass,
         [Platform.SENSOR],
-        device_class=SensorDeviceClass.TEMPERATURE,
+        device_classes=SensorDeviceClass.TEMPERATURE,
     )
 
     humidity_sensors = domain_entities(
         hass,
         [Platform.SENSOR],
-        device_class=SensorDeviceClass.HUMIDITY,
+        device_classes=SensorDeviceClass.HUMIDITY,
     )
 
     abs_humidity_selector = selector.NumberSelector(
@@ -470,6 +542,15 @@ def make_exhaust_fan_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.
             max=5.0,
             step=0.1,
             unit_of_measurement=GRAMS_PER_CUBIC_METER,
+            mode=selector.NumberSelectorMode.SLIDER,
+        ),
+    )
+
+    minutes_selector = selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=0,
+            max=60,
+            unit_of_measurement="minutes",
             mode=selector.NumberSelectorMode.SLIDER,
         ),
     )
@@ -530,34 +611,45 @@ def make_exhaust_fan_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.
                     ExhaustFanConfig.MANUAL_CONTROL_MINUTES,
                     DEFAULT_EXHAUST_MANUAL_MINUTES,
                 ),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0,
-                    max=60,
-                    unit_of_measurement="minutes",
-                    mode=selector.NumberSelectorMode.SLIDER,
-                ),
-            ),
+            ): vol.All(minutes_selector, vol.Coerce(int)),
         }
     )
 
 
-def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema:
+def make_light_options_schema(
+    hass: HomeAssistant, user_input: ConfigType
+) -> vol.Schema:
     """Create 'light' config schema."""
 
     motion_sensors = domain_entities(
         hass,
         [Platform.BINARY_SENSOR],
-        device_class=BinarySensorDeviceClass.MOTION,
+        device_classes=BinarySensorDeviceClass.MOTION,
     )
 
     illuminance_sensors = domain_entities(
         hass,
         [Platform.SENSOR],
-        device_class=SensorDeviceClass.ILLUMINANCE,
+        device_classes=SensorDeviceClass.ILLUMINANCE,
     )
 
     blockers = domain_entities(hass, [Platform.BINARY_SENSOR, INPUT_BOOLEAN_DOMAIN])
+
+    minutes_selector = selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=0,
+            max=60,
+            unit_of_measurement="minutes",
+            mode=selector.NumberSelectorMode.SLIDER,
+        ),
+    )
+
+    illuminance_selector = selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=0,
+            mode=selector.NumberSelectorMode.BOX,
+        ),
+    )
 
     return vol.Schema(
         {
@@ -574,26 +666,12 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
                 default=user_input.get(
                     LightConfig.MANUAL_CONTROL_MINUTES, vol.UNDEFINED
                 ),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0,
-                    max=60,
-                    unit_of_measurement="minutes",
-                    mode=selector.NumberSelectorMode.SLIDER,
-                ),
-            ),
+            ): vol.All(minutes_selector, vol.Coerce(int)),
             # auto off minutes
             vol.Optional(
                 str(LightConfig.AUTO_OFF_MINUTES),
                 default=user_input.get(LightConfig.AUTO_OFF_MINUTES, vol.UNDEFINED),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0,
-                    max=60,
-                    unit_of_measurement="minutes",
-                    mode=selector.NumberSelectorMode.SLIDER,
-                ),
-            ),
+            ): vol.All(minutes_selector, vol.Coerce(int)),
             # illuminance sensor
             vol.Inclusive(
                 str(LightConfig.ILLUMINANCE_SENSOR),
@@ -607,12 +685,7 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
                 str(LightConfig.ILLUMINANCE_CUTOFF),
                 "illumininance",
                 default=user_input.get(LightConfig.ILLUMINANCE_CUTOFF, vol.UNDEFINED),
-            ): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=0,
-                    mode=selector.NumberSelectorMode.BOX,
-                ),
-            ),
+            ): vol.All(illuminance_selector, vol.Coerce(int)),
             # on blocker entity
             vol.Optional(
                 str(LightConfig.ON_BLOCKER_ENTITY),
@@ -629,3 +702,100 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
             ),
         }
     )
+
+
+def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema:
+    """Create 'occupancy' config schema."""
+
+    motion_sensors = domain_entities(
+        hass,
+        [Platform.BINARY_SENSOR],
+        device_classes=BinarySensorDeviceClass.MOTION,
+    )
+
+    minutes_selector = selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=0,
+            max=60,
+            unit_of_measurement="minutes",
+            mode=selector.NumberSelectorMode.SLIDER,
+        ),
+    )
+
+    conditional_entities = domain_entities(
+        hass, [Platform.BINARY_SENSOR, INPUT_BOOLEAN_DOMAIN]
+    ) + on_off_entities(hass, [Platform.BINARY_SENSOR, INPUT_BOOLEAN_DOMAIN])
+
+    conditional_entities = sorted(set(conditional_entities))
+
+    door_sensors = domain_entities(
+        hass,
+        [Platform.BINARY_SENSOR],
+        device_classes=[
+            BinarySensorDeviceClass.DOOR,
+            BinarySensorDeviceClass.GARAGE_DOOR,
+        ],
+    )
+
+    return vol.Schema(
+        {
+            # name
+            vol.Required(
+                str(OccupancyConfig.SENSOR_NAME),
+                default=user_input.get(OccupancyConfig.SENSOR_NAME, vol.UNDEFINED),
+            ): str,
+            # motion sensors
+            vol.Required(
+                str(OccupancyConfig.MOTION_SENSORS),
+                default=user_input.get(OccupancyConfig.MOTION_SENSORS, vol.UNDEFINED),
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    include_entities=motion_sensors, multiple=True
+                ),
+            ),
+            # motion-off minutes
+            vol.Required(
+                str(OccupancyConfig.MOTION_OFF_MINUTES),
+                default=user_input.get(
+                    OccupancyConfig.MOTION_OFF_MINUTES, vol.UNDEFINED
+                ),
+            ): vol.All(minutes_selector, vol.Coerce(int)),
+            # door sensors
+            vol.Optional(
+                str(OccupancyConfig.DOOR_SENSORS),
+                default=user_input.get(OccupancyConfig.DOOR_SENSORS, vol.UNDEFINED),
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    include_entities=door_sensors, multiple=True
+                ),
+            ),
+            # required entities
+            vol.Optional(
+                str(OccupancyConfig.REQUIRED_ENTITIES),
+                default=user_input.get(
+                    OccupancyConfig.REQUIRED_ENTITIES, vol.UNDEFINED
+                ),
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    include_entities=conditional_entities, multiple=True
+                ),
+            ),
+            # optional entities
+            vol.Optional(
+                str(OccupancyConfig.OTHER_ENTITIES),
+                default=user_input.get(OccupancyConfig.OTHER_ENTITIES, vol.UNDEFINED),
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    include_entities=conditional_entities, multiple=True
+                ),
+            ),
+        }
+    )
+
+
+def controlled_entities(hass: HomeAssistant):
+    """TODO."""
+    return [
+        entry.data.get(CommonConfig.CONTROLLED_ENTITY)
+        for entry in hass.config_entries.async_entries(DOMAIN)
+    ]

@@ -10,23 +10,13 @@ from homeassistant.components.fan import (
     SERVICE_SET_PERCENTAGE,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    PERCENTAGE,
-    STATE_OFF,
-    STATE_ON,
-    STATE_UNAVAILABLE,
-    STATE_UNKNOWN,
-    Platform,
-)
+from homeassistant.const import PERCENTAGE, STATE_OFF, STATE_ON, Platform
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
 from homeassistant.helpers.event import async_track_time_interval
 
-from .base_controller import BaseController
-from .const import _LOGGER, CeilingFanConfig
+from .const import _LOGGER, ON_OFF_STATES, CeilingFanConfig
+from .smart_controller import SmartController
 from .util import extrapolate_value, remove_empty, state_with_unit, summer_simmer_index
-
-IGNORE_STATES = (STATE_UNKNOWN, STATE_UNAVAILABLE)
-ON_OFF = (STATE_ON, STATE_OFF)
 
 
 class MyState(StrEnum):
@@ -48,7 +38,7 @@ class MyEvent(StrEnum):
     UPDATE_FAN_SPEED = "update_fan_speed"
 
 
-class CeilingFanController(BaseController):
+class CeilingFanController(SmartController):
     """Representation of a Ceiling Fan Controller."""
 
     _temp: tuple[float, str] | None = None
@@ -105,7 +95,7 @@ class CeilingFanController(BaseController):
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
         match state.entity_id:
-            case self.controlled_entity if state.state in ON_OFF:
+            case self.controlled_entity if state.state in ON_OFF_STATES:
                 await self._process_event(
                     MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
                 )

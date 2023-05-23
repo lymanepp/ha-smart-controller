@@ -11,18 +11,13 @@ from homeassistant.const import (
     SERVICE_TURN_ON,
     STATE_OFF,
     STATE_ON,
-    STATE_UNAVAILABLE,
-    STATE_UNKNOWN,
     Platform,
 )
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
 
-from .base_controller import BaseController
-from .const import _LOGGER, ExhaustFanConfig
+from .const import _LOGGER, ON_OFF_STATES, ExhaustFanConfig
+from .smart_controller import SmartController
 from .util import absolute_humidity, remove_empty, state_with_unit
-
-IGNORE_STATES = (STATE_UNKNOWN, STATE_UNAVAILABLE)
-ON_OFF = (STATE_ON, STATE_OFF)
 
 
 class MyState(StrEnum):
@@ -44,7 +39,7 @@ class MyEvent(StrEnum):
     UPDATE_FAN_MODE = "update_fan_mode"
 
 
-class ExhaustFanController(BaseController):
+class ExhaustFanController(SmartController):
     """Representation of an Exhaust Fan Controller."""
 
     _temp: tuple[float, str] | None = None
@@ -92,7 +87,7 @@ class ExhaustFanController(BaseController):
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
         match state.entity_id:
-            case self.controlled_entity if state.state in ON_OFF:
+            case self.controlled_entity if state.state in ON_OFF_STATES:
                 await self._process_event(
                     MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
                 )

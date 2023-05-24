@@ -39,20 +39,16 @@ ON_STATES: Final = [MyState.MOTION, MyState.OTHER, MyState.WASP_IN_BOX]
 class OccupancyController(SmartController):
     """Representation of an Occupancy Controller."""
 
-    _doors_closed: bool | None = None
-    _required_state: bool | None = None
-    _other_state: bool | None = None
-
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the Occupancy Controller."""
         super().__init__(
             hass, config_entry, initial_state=MyState.UNOCCUPIED, is_on_states=ON_STATES
         )
 
+        self.name = self.data.get(OccupancyConfig.SENSOR_NAME)
         self.motion_sensors: list[str] = self.data.get(
             OccupancyConfig.MOTION_SENSORS, []
         )
-
         motion_off_minutes = self.data.get(OccupancyConfig.MOTION_OFF_MINUTES)
 
         self._motion_off_period = (
@@ -70,6 +66,10 @@ class OccupancyController(SmartController):
         self.other_states: dict[str, bool | None] = {
             id: None for id in self.data.get(OccupancyConfig.OTHER_ENTITIES, [])
         }
+
+        self._doors_closed: bool | None = None
+        self._required_state: bool | None = None
+        self._other_state: bool | None = None
 
         self.tracked_entity_ids = remove_empty(
             [

@@ -50,7 +50,9 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    _controlled_entity: str | None = None
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        self._controlled_entity: str | None = None
 
     async def async_step_user(
         self,

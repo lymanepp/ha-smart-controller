@@ -42,11 +42,6 @@ class MyEvent(StrEnum):
 class ExhaustFanController(SmartController):
     """Representation of an Exhaust Fan Controller."""
 
-    _temp: tuple[float, str] | None = None
-    _humidity: tuple[float, str] | None = None
-    _ref_temp: tuple[float, str] | None = None
-    _ref_humidity: tuple[float, str] | None = None
-
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the controller."""
         super().__init__(hass, config_entry, MyState.INIT)
@@ -67,6 +62,11 @@ class ExhaustFanController(SmartController):
             if manual_control_minutes
             else None
         )
+
+        self._temp: tuple[float, str] | None = None
+        self._humidity: tuple[float, str] | None = None
+        self._ref_temp: tuple[float, str] | None = None
+        self._ref_humidity: tuple[float, str] | None = None
 
         self.tracked_entity_ids = remove_empty(
             [

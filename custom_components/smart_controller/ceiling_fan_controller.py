@@ -41,10 +41,6 @@ class MyEvent(StrEnum):
 class CeilingFanController(SmartController):
     """Representation of a Ceiling Fan Controller."""
 
-    _temp: tuple[float, str] | None = None
-    _humidity: tuple[float, str] | None = None
-    _prereq_state: str | None = None
-
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the controller."""
         super().__init__(hass, config_entry, MyState.INIT)
@@ -71,6 +67,10 @@ class CeilingFanController(SmartController):
             if manual_control_minutes
             else None
         )
+
+        self._temp: tuple[float, str] | None = None
+        self._humidity: tuple[float, str] | None = None
+        self._prereq_state: str | None = None
 
         self.tracked_entity_ids = remove_empty(
             [

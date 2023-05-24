@@ -27,12 +27,6 @@ DEFAULT_ON_STATES: Final = [STATE_ON]
 class SmartController:
     """Base class for controllers."""
 
-    name: str | None = None
-    tracked_entity_ids: list[str] | None = None
-    _timer_unsub: CALLBACK_TYPE | None = None
-    _unsubscribers: list[CALLBACK_TYPE] = []
-    _listeners: list[CALLBACK_TYPE] = []
-
     def __init__(
         self,
         hass: HomeAssistant,
@@ -49,12 +43,18 @@ class SmartController:
         self.controlled_entity: str = self.data.get(CommonConfig.CONTROLLED_ENTITY)
         self._is_on_states = is_on_states or DEFAULT_ON_STATES
 
+        self.name: str | None = None
+        self.tracked_entity_ids: list[str] | None = None
+        self._timer_unsub: CALLBACK_TYPE | None = None
+        self._unsubscribers: list[CALLBACK_TYPE] = []
+        self._listeners: list[CALLBACK_TYPE] = []
+
     async def async_setup(self, hass) -> None:
         """Subscribe to state change events for all tracked entities."""
         for entity_id in self.tracked_entity_ids:
             state = hass.states.get(entity_id)
             if state is not None:
-                if entity_id == self.controlled_entity:
+                if self.name is None and entity_id == self.controlled_entity:
                     self.name = state.name
                 await self._on_state_change(None, state)
             else:

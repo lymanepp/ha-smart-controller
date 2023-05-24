@@ -73,7 +73,7 @@
                     "sensor_name": "Occupancy sensor name",
                     "motion_sensors": "Occupancy will be detected for specified time whenever motion is detected by these sensors.",
                     "motion_off_minutes": "Motion minutes.",
-                    "door_sensors": "OPTIONAL: Occupancy will be detected if motion is seen in a room while these doors are closed--even if motion stops.",
+                    "door_sensors": "OPTIONAL: Occupancy will be detected indefinitely if motion is seen in a room while all doors are closed--even after motion stops. Only add door sensors when all access points for an area have sensors.",
                     "required_entities": "OPTIONAL: These must all be 'on' before occupancy will be detected.",
                     "other_entities": "OPTIONAL: Occupancy will be detected if any of these are 'on'."
                 }
@@ -137,7 +137,7 @@
                     "sensor_name": "Occupancy sensor name",
                     "motion_sensors": "Occupancy will be detected for specified time whenever motion is detected by these sensors.",
                     "motion_off_minutes": "Motion minutes.",
-                    "door_sensors": "OPTIONAL: Occupancy will be detected if motion is seen in a room while these doors are closed--even if motion stops.",
+                    "door_sensors": "OPTIONAL: Occupancy will be detected indefinitely if motion is seen in a room while all doors are closed--even after motion stops. Only add door sensors when all access points for an area have sensors.",
                     "required_entities": "OPTIONAL: These must all be 'on' before occupancy will be detected.",
                     "other_entities": "OPTIONAL: Occupancy will be detected if any of these are 'on'."
                 }

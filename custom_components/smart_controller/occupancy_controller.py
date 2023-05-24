@@ -31,6 +31,8 @@ class MyEvent(StrEnum):
     DOOR_OPENED = "door_opened"
     OTHER_OFF = "other_off"
     OTHER_ON = "other_on"
+    REQUIRED_OFF = "required_off"
+    REQUIRED_ON = "required_on"
 
 
 ON_STATES: Final = [MyState.MOTION, MyState.OTHER, MyState.WASP_IN_BOX]
@@ -68,7 +70,7 @@ class OccupancyController(SmartController):
         }
 
         self._doors_closed: bool | None = None
-        self._required_state: bool | None = None
+        self._required_state: bool = not any(self.required_states)
         self._other_state: bool | None = None
 
         self.tracked_entity_ids = remove_empty(
@@ -92,7 +94,6 @@ class OccupancyController(SmartController):
             closed = all(value == STATE_OFF for value in self.door_states.values())
             if self._doors_closed != closed:
                 self._doors_closed = closed
-
                 if not closed:
                     self._process_event(MyEvent.DOOR_OPENED)
 
@@ -102,9 +103,9 @@ class OccupancyController(SmartController):
             required = all(value == STATE_ON for value in self.required_states.values())
             if self._required_state != required:
                 self._required_state = required
-
-                # TODO: this is just a placeholder!
-                self._process_event(MyEvent.OTHER_ON if required else MyEvent.OTHER_OFF)
+                self._process_event(
+                    MyEvent.REQUIRED_ON if required else MyEvent.REQUIRED_OFF
+                )
 
         elif state.entity_id in self.other_states and state.state in ON_OFF_STATES:
             self.other_states[state.entity_id] = state.state
@@ -112,7 +113,6 @@ class OccupancyController(SmartController):
             other = any(value == STATE_ON for value in self.other_states.values())
             if self._other_state != other:
                 self._other_state = other
-
                 self._process_event(MyEvent.OTHER_ON if other else MyEvent.OTHER_OFF)
 
     async def on_timer_expired(self) -> None:
@@ -144,13 +144,16 @@ class OccupancyController(SmartController):
             self.set_state(MyState.OTHER)
 
         match (self._state, event):
-            case (MyState.UNOCCUPIED, MyEvent.MOTION):
+            case (MyState.UNOCCUPIED, MyEvent.MOTION) if self._required_state:
                 if self._doors_closed:
                     enter_wasp_in_box_state()
                 else:
                     enter_motion_state()
 
-            case (MyState.UNOCCUPIED, MyEvent.OTHER_ON):
+            case (MyState.UNOCCUPIED, MyEvent.OTHER_ON) if self._required_state:
+                enter_other_state()
+
+            case (MyState.UNOCCUPIED, MyEvent.REQUIRED_ON) if self._other_state:
                 enter_other_state()
 
             case (MyState.MOTION, MyEvent.MOTION) if self._doors_closed:
@@ -162,8 +165,14 @@ class OccupancyController(SmartController):
                 else:
                     enter_unoccupied_state()
 
+            case (MyState.MOTION, MyEvent.REQUIRED_OFF):
+                enter_unoccupied_state()
+
             case (MyState.WASP_IN_BOX, MyEvent.DOOR_OPENED):
                 enter_motion_state()
+
+            case (MyState.WASP_IN_BOX, MyEvent.REQUIRED_OFF):
+                enter_unoccupied_state()
 
             case (MyState.OTHER, MyEvent.MOTION):
                 if self._doors_closed:
@@ -172,6 +181,9 @@ class OccupancyController(SmartController):
                     enter_motion_state()
 
             case (MyState.OTHER, MyEvent.OTHER_OFF):
+                enter_unoccupied_state()
+
+            case (MyState.OTHER, MyEvent.REQUIRED_OFF):
                 enter_unoccupied_state()
 
             case _:

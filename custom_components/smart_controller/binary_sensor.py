@@ -29,17 +29,17 @@ async def async_setup_entry(
     controller = hass.data[DOMAIN][config_entry.entry_id]
     controller_type = config_entry.data[CommonConfig.TYPE]
 
-    for entity_description in ENTITY_DESCRIPTIONS:
-        if entity_description.key == controller_type:
-            entity_description.name = config_entry.title
-            async_add_entities(
-                [
-                    SmartControllerBinarySensor(
-                        controller=controller,
-                        entity_description=entity_description,
-                    )
-                ]
+    async_add_entities(
+        [
+            SmartControllerBinarySensor(
+                controller=controller,
+                entity_description=entity_description,
+                name=config_entry.title,
             )
+            for entity_description in ENTITY_DESCRIPTIONS
+            if entity_description.key == controller_type
+        ]
+    )
 
 
 class SmartControllerBinarySensor(SmartControllerEntity, BinarySensorEntity):
@@ -49,10 +49,12 @@ class SmartControllerBinarySensor(SmartControllerEntity, BinarySensorEntity):
         self,
         controller: SmartController,
         entity_description: BinarySensorEntityDescription,
+        name: str,
     ) -> None:
         """Initialize the sensor class."""
         super().__init__(controller)
         self.entity_description = entity_description
+        self._attr_name = name
 
     @property
     def is_on(self):

@@ -32,7 +32,7 @@ class SmartControllerEntity(Entity):
         self.async_on_remove(self.controller.async_add_listener(self._update_callback))
         self._update_callback()
 
-    # Internal methods
+    # #### Internal methods ####
 
     @callback
     def _update_callback(self) -> None:

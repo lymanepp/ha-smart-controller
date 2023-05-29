@@ -44,12 +44,11 @@ def remove_empty(values):
     return [value for value in values if value is not None]
 
 
-def state_with_unit(state: State, default_unit: str) -> tuple[float, str]:
+def float_with_unit(state: State, default_unit: str) -> tuple[float, str]:
     """Return state's value with unit of measurement as a tuple."""
-    return (
-        util.convert(state.state, float),
-        state.attributes.get(ATTR_UNIT_OF_MEASUREMENT, default_unit),
-    )
+    value = util.convert(state.state, float)
+    assert value is not None
+    return (value, state.attributes.get(ATTR_UNIT_OF_MEASUREMENT, default_unit))
 
 
 def extrapolate_value(
@@ -66,6 +65,7 @@ def extrapolate_value(
     if source_value > source_range[1]:
         return target_range[1] if high_default is None else high_default
 
+    # TODO: replace these functions to eliminate min/max hack below
     target_value = percentage_to_ranged_value(
         target_range,
         ranged_value_to_percentage(source_range, source_value),
@@ -77,31 +77,47 @@ def extrapolate_value(
 def domain_entities(
     hass: HomeAssistant,
     domains: Iterable[str],
-    device_classes: str | Iterable[str] | None = None,
-) -> list[str]:
+    device_classes: str | Iterable[str | None] | None = None,
+    units_of_measurement: str | Iterable[str | None] | None = None,
+) -> set[str]:
     """Get list of matching entities."""
 
     if isinstance(device_classes, str):
         device_classes = [device_classes]
+
+    if isinstance(units_of_measurement, str):
+        units_of_measurement = [units_of_measurement]
 
     entity_ids = set()
     ent_reg = entity_registry.async_get(hass)
 
     for state in hass.states.async_all(domains):
         entity = ent_reg.async_get(state.entity_id)
-        if (entity is None or not entity.hidden) and (
-            device_classes is None
-            or state.attributes.get(ATTR_DEVICE_CLASS) in device_classes
-        ):
-            entity_ids.add(state.entity_id)
+        if entity and entity.hidden:
+            continue
 
-    return sorted(entity_ids)
+        if (
+            device_classes
+            and state.attributes.get(ATTR_DEVICE_CLASS) not in device_classes
+        ):
+            continue
+
+        if (
+            units_of_measurement
+            and state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
+            not in units_of_measurement
+        ):
+            continue
+
+        entity_ids.add(state.entity_id)
+
+    return entity_ids
 
 
 def on_off_entities(
     hass: HomeAssistant,
     excluded_domains: Iterable[str],
-) -> list[str]:
+) -> set[str]:
     """Get list of entities with on/off state."""
 
     entity_ids = set()
@@ -113,4 +129,4 @@ def on_off_entities(
             if entity is None or not entity.hidden:
                 entity_ids.add(state.entity_id)
 
-    return sorted(entity_ids)
+    return entity_ids

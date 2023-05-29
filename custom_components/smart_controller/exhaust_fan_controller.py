@@ -13,11 +13,11 @@ from homeassistant.const import (
     STATE_ON,
     Platform,
 )
-from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
+from homeassistant.core import HomeAssistant, State
 
 from .const import _LOGGER, ON_OFF_STATES, ExhaustFanConfig
 from .smart_controller import SmartController
-from .util import absolute_humidity, remove_empty, state_with_unit
+from .util import absolute_humidity, float_with_unit, remove_empty
 
 
 class MyState(StrEnum):
@@ -36,7 +36,7 @@ class MyEvent(StrEnum):
     OFF = "off"
     ON = "on"
     TIMER = "timer"
-    UPDATE_FAN_MODE = "update_fan_mode"
+    REFRESH = "refresh"
 
 
 class ExhaustFanController(SmartController):
@@ -78,11 +78,10 @@ class ExhaustFanController(SmartController):
             ]
         )
 
-    async def async_setup(self, hass) -> CALLBACK_TYPE:
+    async def async_setup(self, hass) -> None:
         """Additional setup unique to this controller."""
-        unsubscriber = await super().async_setup(hass)
-        await self._process_event(MyEvent.UPDATE_FAN_MODE)
-        return unsubscriber
+        await super().async_setup(hass)
+        await self._process_event(MyEvent.REFRESH)
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
@@ -93,24 +92,24 @@ class ExhaustFanController(SmartController):
                 )
 
             case self.temp_sensor:
-                self._temp = state_with_unit(
+                self._temp = float_with_unit(
                     state, self.hass.config.units.temperature_unit
                 )
-                await self._process_event(MyEvent.UPDATE_FAN_MODE)
+                await self._process_event(MyEvent.REFRESH)
 
             case self.humidity_sensor:
-                self._humidity = state_with_unit(state, PERCENTAGE)
-                await self._process_event(MyEvent.UPDATE_FAN_MODE)
+                self._humidity = float_with_unit(state, PERCENTAGE)
+                await self._process_event(MyEvent.REFRESH)
 
             case self.ref_temp_sensor:
-                self._ref_temp = state_with_unit(
+                self._ref_temp = float_with_unit(
                     state, self.hass.config.units.temperature_unit
                 )
-                await self._process_event(MyEvent.UPDATE_FAN_MODE)
+                await self._process_event(MyEvent.REFRESH)
 
             case self.ref_humidity_sensor:
-                self._ref_humidity = state_with_unit(state, PERCENTAGE)
-                await self._process_event(MyEvent.UPDATE_FAN_MODE)
+                self._ref_humidity = float_with_unit(state, PERCENTAGE)
+                await self._process_event(MyEvent.REFRESH)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
@@ -137,7 +136,7 @@ class ExhaustFanController(SmartController):
                 )
                 self.set_timer(self._manual_control_period)
 
-            case (MyState.OFF, MyEvent.UPDATE_FAN_MODE):
+            case (MyState.OFF, MyEvent.REFRESH):
                 if fan_on := await self._set_fan_mode():
                     self.set_state(MyState.ON)
 
@@ -147,7 +146,7 @@ class ExhaustFanController(SmartController):
                 )
                 self.set_timer(self._manual_control_period)
 
-            case (MyState.ON, MyEvent.UPDATE_FAN_MODE):
+            case (MyState.ON, MyEvent.REFRESH):
                 if not (fan_on := await self._set_fan_mode()):
                     self.set_state(MyState.OFF)
 
@@ -178,14 +177,22 @@ class ExhaustFanController(SmartController):
                 )
 
     async def _set_fan_mode(self) -> bool:
-        if None in (self._temp, self._humidity, self._ref_temp, self._ref_humidity):
+        if (
+            self._temp is None
+            or self._humidity is None
+            or self._ref_temp is None
+            or self._ref_humidity is None
+        ):
             return False
 
         abs_hum = absolute_humidity(self._temp, self._humidity[0])
         ref_abs_hum = absolute_humidity(self._ref_temp, self._ref_humidity[0])
         difference = abs_hum - ref_abs_hum
 
+        assert self.controlled_entity
         fan_state = self.hass.states.get(self.controlled_entity)
+
+        assert fan_state
         curr_mode = fan_state.state
 
         if curr_mode == STATE_OFF and difference > self.rising_threshold:

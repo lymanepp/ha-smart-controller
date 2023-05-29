@@ -29,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     domain_data[config_entry.entry_id] = controller
 
-    async def start_controller(_: Event = None):
+    async def start_controller(_: Event | None = None):
         await controller.async_setup(hass)
 
     if hass.state == CoreState.running:
@@ -63,7 +63,8 @@ async def async_reload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 def _create_controller(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> SmartController | None:
-    match config_entry.data[CommonConfig.TYPE]:
+    controller_type = config_entry.data[CommonConfig.TYPE]
+    match controller_type:
         case ControllerType.CEILING_FAN:
             return CeilingFanController(hass, config_entry)
 
@@ -76,5 +77,4 @@ def _create_controller(
         case ControllerType.OCCUPANCY:
             return OccupancyController(hass, config_entry)
 
-        case _:
-            return None
+    raise TypeError(f"Invalid controller type: {controller_type}")

@@ -16,11 +16,12 @@ class SmartControllerEntity(Entity):
 
     def __init__(self, controller: SmartController) -> None:
         """Initialize."""
+        unique_id = controller.config_entry.entry_id
         self.hass = controller.hass
         self.controller = controller
-        self._attr_unique_id = controller.config_entry.entry_id
+        self._attr_unique_id = unique_id
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self.unique_id)},
+            identifiers={(DOMAIN, unique_id)},
             entry_type=DeviceEntryType.SERVICE,
             name=NAME,
             manufacturer=NAME,
@@ -41,5 +42,8 @@ class SmartControllerEntity(Entity):
         self.async_write_ha_state()
 
     async def _set_sw_version(self) -> None:
+        assert self.device_info
+
         custom_components = await async_get_custom_components(self.hass)
-        self.device_info[ATTR_SW_VERSION] = custom_components[DOMAIN].version.string
+        if version := custom_components[DOMAIN].version:
+            self.device_info[ATTR_SW_VERSION] = version.string

@@ -11,12 +11,12 @@ from homeassistant.components.fan import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, STATE_OFF, STATE_ON, Platform
-from homeassistant.core import CALLBACK_TYPE, HomeAssistant, State
+from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import _LOGGER, ON_OFF_STATES, CeilingFanConfig
 from .smart_controller import SmartController
-from .util import extrapolate_value, remove_empty, state_with_unit, summer_simmer_index
+from .util import extrapolate_value, float_with_unit, remove_empty, summer_simmer_index
 
 
 class MyState(StrEnum):
@@ -35,7 +35,7 @@ class MyEvent(StrEnum):
     OFF = "off"
     ON = "on"
     TIMER = "timer"
-    UPDATE_FAN_SPEED = "update_fan_speed"
+    REFRESH = "refresh"
 
 
 class CeilingFanController(SmartController):
@@ -47,9 +47,6 @@ class CeilingFanController(SmartController):
 
         self.temp_sensor: str = self.data[CeilingFanConfig.TEMP_SENSOR]
         self.humidity_sensor: str = self.data[CeilingFanConfig.HUMIDITY_SENSOR]
-        self.prerequisite_entity: str | None = self.data.get(
-            CeilingFanConfig.PREREQUISITE_ENTITY
-        )
 
         self.ssi_range = (
             float(self.data[CeilingFanConfig.SSI_MIN]),
@@ -68,60 +65,63 @@ class CeilingFanController(SmartController):
             else None
         )
 
+        required_on_entities: list[str] = self.data.get(
+            CeilingFanConfig.REQUIRED_ON_ENTITIES, []
+        )
+        required_off_entities: list[str] = self.data.get(
+            CeilingFanConfig.REQUIRED_OFF_ENTITIES, []
+        )
+        self._required = {
+            **{k: STATE_ON for k in required_on_entities},
+            **{k: STATE_OFF for k in required_off_entities},
+        }
+        self._required_states: dict[str, str | None] = {k: None for k in self._required}
+
         self._temp: tuple[float, str] | None = None
         self._humidity: tuple[float, str] | None = None
-        self._prereq_state: str | None = None
 
         self.tracked_entity_ids = remove_empty(
             [
                 self.controlled_entity,
                 self.temp_sensor,
                 self.humidity_sensor,
-                self.prerequisite_entity,
+                *self._required,
             ]
         )
 
-    async def async_setup(self, hass) -> CALLBACK_TYPE:
+    async def async_setup(self, hass) -> None:
         """Additional setup unique to this controller."""
-        unsubscriber = await super().async_setup(hass)
-
+        await super().async_setup(hass)
         self._unsubscribers.append(
             async_track_time_interval(hass, self._on_poll, timedelta(seconds=60))
         )
-
-        await self._process_event(MyEvent.UPDATE_FAN_SPEED)
-        return unsubscriber
+        await self._process_event(MyEvent.REFRESH)
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
-        match state.entity_id:
-            case self.controlled_entity if state.state in ON_OFF_STATES:
-                await self._process_event(
-                    MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
-                )
+        if state.entity_id == self.controlled_entity and state.state in ON_OFF_STATES:
+            await self._process_event(
+                MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
+            )
 
-            case self.temp_sensor:
-                self._temp = state_with_unit(
-                    state, self.hass.config.units.temperature_unit
-                )
+        elif state.entity_id == self.temp_sensor:
+            self._temp = float_with_unit(state, self.hass.config.units.temperature_unit)
 
-            case self.humidity_sensor:
-                self._humidity = state_with_unit(state, PERCENTAGE)
+        elif state.entity_id == self.humidity_sensor:
+            self._humidity = float_with_unit(state, PERCENTAGE)
 
-            case self.prerequisite_entity:
-                self._prereq_state = state.state
-                await self._process_event(MyEvent.UPDATE_FAN_SPEED)
+        elif state.entity_id in self._required_states:
+            if state.state in ON_OFF_STATES:
+                self._required_states[state.entity_id] = state.state
+                await self._process_event(MyEvent.REFRESH)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
         await self._process_event(MyEvent.TIMER)
 
-    async def _on_poll(
-        self,
-        now: datetime,  # noqa: 501  pylint: disable=unused-argument
-    ) -> None:
+    async def _on_poll(self, _: datetime) -> None:
         _LOGGER.debug("%s; state=%s; polling for changes", self.name, self._state)
-        await self._process_event(MyEvent.UPDATE_FAN_SPEED)
+        await self._process_event(MyEvent.REFRESH)
 
     async def _process_event(self, event: MyEvent) -> None:
         _LOGGER.debug(
@@ -144,7 +144,7 @@ class CeilingFanController(SmartController):
                 )
                 self.set_timer(self._manual_control_period)
 
-            case (MyState.OFF, MyEvent.UPDATE_FAN_SPEED):
+            case (MyState.OFF, MyEvent.REFRESH):
                 if fan_on := await self._update_fan_speed():
                     self.set_state(MyState.ON)
 
@@ -154,7 +154,7 @@ class CeilingFanController(SmartController):
                 )
                 self.set_timer(self._manual_control_period)
 
-            case (MyState.ON, MyEvent.UPDATE_FAN_SPEED):
+            case (MyState.ON, MyEvent.REFRESH):
                 if not (fan_on := await self._update_fan_speed()):
                     self.set_state(MyState.OFF)
 
@@ -193,7 +193,10 @@ class CeilingFanController(SmartController):
             ssi, self.ssi_range, self.speed_range, low_default=0
         )
 
+        assert self.controlled_entity
         fan_state = self.hass.states.get(self.controlled_entity)
+
+        assert fan_state
         speed_step = fan_state.attributes.get(ATTR_PERCENTAGE_STEP, 100)
 
         curr_speed = int(
@@ -201,9 +204,10 @@ class CeilingFanController(SmartController):
             if fan_state.state == STATE_ON
             else 0
         )
-        new_speed = int(
-            round(int(ssi_speed / speed_step) * speed_step, 3)
-            if self._prereq_state != STATE_OFF
+
+        new_speed = (
+            int(round(int(ssi_speed / speed_step) * speed_step, 3))
+            if self._required_states == self._required
             else 0
         )
 

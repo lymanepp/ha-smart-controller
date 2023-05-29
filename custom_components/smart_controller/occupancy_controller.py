@@ -28,14 +28,13 @@ class MyEvent(StrEnum):
 
     MOTION = "motion"
     TIMER = "timer"
-    DOOR_OPENED = "door_opened"
-    OTHER_OFF = "other_off"
-    OTHER_ON = "other_on"
-    REQUIRED_OFF = "required_off"
-    REQUIRED_ON = "required_on"
+    UPDATE = "update"
+    DOOR_OPEN = "door_open"
 
 
-ON_STATES: Final = [MyState.MOTION, MyState.OTHER, MyState.WASP_IN_BOX]
+ON_STATES: Final = [
+    str(s) for s in [MyState.MOTION, MyState.OTHER, MyState.WASP_IN_BOX]
+]
 
 
 class OccupancyController(SmartController):
@@ -47,73 +46,66 @@ class OccupancyController(SmartController):
             hass, config_entry, initial_state=MyState.UNOCCUPIED, is_on_states=ON_STATES
         )
 
-        self.name = self.data.get(OccupancyConfig.SENSOR_NAME)
-        self.motion_sensors: list[str] = self.data.get(
+        self.name = config_entry.title
+        self._motion_sensors: list[str] = self.data.get(
             OccupancyConfig.MOTION_SENSORS, []
         )
-        motion_off_minutes = self.data.get(OccupancyConfig.MOTION_OFF_MINUTES)
+        motion_off_minutes = self.data.get(OccupancyConfig.OFF_MINUTES)
 
         self._motion_off_period = (
             timedelta(minutes=motion_off_minutes) if motion_off_minutes else None
         )
 
-        self.door_states: dict[str, bool | None] = {
-            id: None for id in self.data.get(OccupancyConfig.DOOR_SENSORS, [])
-        }
-
-        self.required_states: dict[str, bool | None] = {
-            id: None for id in self.data.get(OccupancyConfig.REQUIRED_ENTITIES, [])
-        }
-
-        self.other_states: dict[str, bool | None] = {
+        self._other_states: dict[str, str | None] = {
             id: None for id in self.data.get(OccupancyConfig.OTHER_ENTITIES, [])
         }
 
-        self._doors_closed: bool | None = None
-        self._required_state: bool = not any(self.required_states)
-        self._other_state: bool | None = None
+        self._door_states: dict[str, str | None] = {
+            id: None for id in self.data.get(OccupancyConfig.DOOR_SENSORS, [])
+        }
+
+        required_on_entities: list[str] = self.data.get(
+            OccupancyConfig.REQUIRED_ON_ENTITIES, []
+        )
+        required_off_entities: list[str] = self.data.get(
+            OccupancyConfig.REQUIRED_OFF_ENTITIES, []
+        )
+        self._required: dict[str, str] = {
+            **{k: STATE_ON for k in required_on_entities},
+            **{k: STATE_OFF for k in required_off_entities},
+        }
+        self._required_states: dict[str, str | None] = {k: None for k in self._required}
 
         self.tracked_entity_ids = remove_empty(
             [
                 self.controlled_entity,
-                *self.motion_sensors,
-                *self.door_states,
-                *self.required_states,
-                *self.other_states,
+                *self._motion_sensors,
+                *self._other_states,
+                *self._door_states,
+                *self._required,
             ]
         )
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
-        if state.entity_id in self.motion_sensors and state.state == STATE_ON:
+        if state.entity_id in self._motion_sensors and state.state == STATE_ON:
             self._process_event(MyEvent.MOTION)
 
-        elif state.entity_id in self.door_states and state.state in ON_OFF_STATES:
-            self.door_states[state.entity_id] = state.state
+        elif state.entity_id in self._other_states:
+            if state.state in ON_OFF_STATES:
+                self._other_states[state.entity_id] = state.state
+                self._process_event(MyEvent.UPDATE)
 
-            closed = all(value == STATE_OFF for value in self.door_states.values())
-            if self._doors_closed != closed:
-                self._doors_closed = closed
-                if not closed:
-                    self._process_event(MyEvent.DOOR_OPENED)
+        elif state.entity_id in self._door_states:
+            if state.state in ON_OFF_STATES:
+                self._door_states[state.entity_id] = state.state
+                if any(value == STATE_ON for value in self._door_states.values()):
+                    self._process_event(MyEvent.DOOR_OPEN)
 
-        elif state.entity_id in self.required_states and state.state in ON_OFF_STATES:
-            self.required_states[state.entity_id] = state.state
-
-            required = all(value == STATE_ON for value in self.required_states.values())
-            if self._required_state != required:
-                self._required_state = required
-                self._process_event(
-                    MyEvent.REQUIRED_ON if required else MyEvent.REQUIRED_OFF
-                )
-
-        elif state.entity_id in self.other_states and state.state in ON_OFF_STATES:
-            self.other_states[state.entity_id] = state.state
-
-            other = any(value == STATE_ON for value in self.other_states.values())
-            if self._other_state != other:
-                self._other_state = other
-                self._process_event(MyEvent.OTHER_ON if other else MyEvent.OTHER_OFF)
+        elif state.entity_id in self._required_states:
+            if state.state in ON_OFF_STATES:
+                self._required_states[state.entity_id] = state.state
+                self._process_event(MyEvent.UPDATE)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
@@ -127,64 +119,74 @@ class OccupancyController(SmartController):
             event,
         )
 
-        def enter_unoccupied_state():
+        def enter_unoccupied_state() -> None:
             self.set_timer(None)
             self.set_state(MyState.UNOCCUPIED)
 
-        def enter_motion_state():
+        def enter_motion_state() -> None:
             self.set_timer(self._motion_off_period)
             self.set_state(MyState.MOTION)
 
-        def enter_wasp_in_box_state():
+        def enter_wasp_in_box_state() -> None:
             self.set_timer(None)
             self.set_state(MyState.WASP_IN_BOX)
 
-        def enter_other_state():
+        def enter_other_state() -> None:
             self.set_timer(None)
             self.set_state(MyState.OTHER)
 
+        def have_other() -> bool:
+            return any(value == STATE_ON for value in self._other_states.values())
+
+        def doors_closed() -> bool:
+            return any(self._door_states) and all(
+                value == STATE_ON for value in self._door_states.values()
+            )
+
+        def have_required() -> bool:
+            return self._required == self._required_states
+
         match (self._state, event):
-            case (MyState.UNOCCUPIED, MyEvent.MOTION) if self._required_state:
-                if self._doors_closed:
+            case (MyState.UNOCCUPIED, MyEvent.MOTION) if have_required():
+                if doors_closed():
                     enter_wasp_in_box_state()
                 else:
                     enter_motion_state()
 
-            case (MyState.UNOCCUPIED, MyEvent.OTHER_ON) if self._required_state:
-                enter_other_state()
+            case (MyState.UNOCCUPIED, MyEvent.UPDATE) if have_required():
+                if have_other():
+                    enter_other_state()
 
-            case (MyState.UNOCCUPIED, MyEvent.REQUIRED_ON) if self._other_state:
-                enter_other_state()
-
-            case (MyState.MOTION, MyEvent.MOTION) if self._doors_closed:
-                enter_wasp_in_box_state()
+            case (MyState.MOTION, MyEvent.MOTION):
+                if doors_closed():
+                    enter_wasp_in_box_state()
+                else:
+                    enter_motion_state()  # restart the timer
 
             case (MyState.MOTION, MyEvent.TIMER):
-                if self._other_state:
+                if have_other():
                     enter_other_state()
                 else:
                     enter_unoccupied_state()
 
-            case (MyState.MOTION, MyEvent.REQUIRED_OFF):
+            case (MyState.MOTION, MyEvent.UPDATE) if not have_required():
                 enter_unoccupied_state()
 
-            case (MyState.WASP_IN_BOX, MyEvent.DOOR_OPENED):
+            case (MyState.WASP_IN_BOX, MyEvent.DOOR_OPEN):
                 enter_motion_state()
 
-            case (MyState.WASP_IN_BOX, MyEvent.REQUIRED_OFF):
+            case (MyState.WASP_IN_BOX, MyEvent.UPDATE) if not have_required():
                 enter_unoccupied_state()
 
             case (MyState.OTHER, MyEvent.MOTION):
-                if self._doors_closed:
+                if doors_closed():
                     enter_wasp_in_box_state()
                 else:
                     enter_motion_state()
 
-            case (MyState.OTHER, MyEvent.OTHER_OFF):
-                enter_unoccupied_state()
-
-            case (MyState.OTHER, MyEvent.REQUIRED_OFF):
-                enter_unoccupied_state()
+            case (MyState.OTHER, MyEvent.UPDATE):
+                if not (have_other() and have_required()):
+                    enter_unoccupied_state()
 
             case _:
                 _LOGGER.debug(

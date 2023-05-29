@@ -1,163 +1,168 @@
 {
     "config": {
         "step": {
-            "user": {
-                "title": "Configure fan operating mode",
-                "description": "Configure the fan operating mode.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller"
+            "type_menu": {
+                "title": "Choose what to control",
+                "menu_options": {
+                    "ceiling_fan": "Ceiling fan",
+                    "exhaust_fan": "Exhaust fan",
+                    "light": "Light",
+                    "occupancy": "Occupancy sensor"
+                }
             },
             "ceiling_fan": {
-                "title": "Choose a fan to control",
-                "description": "Choose a fan to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "title": "Choose a ceiling fan",
+                "description": "Choose a ceiling fan to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "controlled_entity": "Fan entity"
+                    "controlled_entity": "Ceiling fan"
                 }
             },
             "ceiling_fan_options": {
-                "title": "Configure ceiling fan controller",
+                "title": "Configure {controlled_entity}",
                 "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "temp_sensor": "Temperature sensor",
-                    "humidity_sensor": "Humidity sensor",
-                    "prerequisite_entity": "Prerequisite entity (optional)",
-                    "speed_min": "Minimum fan speed",
-                    "speed_max": "Maximum fan speed",
-                    "ssi_min": "Fan will start when SSI above",
-                    "ssi_max": "Fan speed will be maximum when SSI above",
-                    "manual_control_minutes": "Manual control (optional)"
+                    "temp_sensor": "Temperature sensor in the same room as the fan to be controlled:",
+                    "humidity_sensor": "Humidity sensor in the same room as the fan to be controlled:",
+                    "ssi_min": "Fan will start when SSI is above:",
+                    "ssi_max": "Fan speed will be maximum speed when SSI above:",
+                    "speed_min": "Minimum fan speed:",
+                    "speed_max": "Maximum fan speed:",
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):",
+                    "manual_control_minutes": "Manual control (OPTIONAL):"
                 }
             },
             "exhaust_fan": {
-                "title": "Choose a fan to control",
-                "description": "Choose a fan to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "title": "Choose an exhaust fan",
+                "description": "Choose an exhaust fan to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "controlled_entity": "Fan entity"
+                    "controlled_entity": "Exhaust fan"
                 }
             },
             "exhaust_fan_options": {
-                "title": "Configure exhaust fan controller",
-                "description": "Configure the exhaust fan controller. If you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "title": "Configure {controlled_entity}",
+                "description": "Automate an exhaust fan to control humidity.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "temp_sensor": "Temperature sensor",
-                    "humidity_sensor": "Humidity sensor",
-                    "reference_temp_sensor": "Reference temperature sensor",
-                    "reference_humidity_sensor": "Reference humidity sensor",
-                    "rising_threshold": "Rising Threshold",
-                    "falling_threshold": "Falling Threshold",
-                    "manual_control_minutes": "Manual control (optional)"
+                    "temp_sensor": "Temperature sensor in the same room as the fan to be controlled:",
+                    "humidity_sensor": "Humidity sensor in the same room as the fan to be controlled:",
+                    "reference_temp_sensor": "Temperature sensor outside the room:",
+                    "reference_humidity_sensor": "Humidity sensor outside the room:",
+                    "rising_threshold": "Rising Threshold:",
+                    "falling_threshold": "Falling Threshold:",
+                    "manual_control_minutes": "Manual control (OPTIONAL):"
                 }
             },
             "light": {
-                "title": "Choose a light to control",
+                "title": "Choose a light",
                 "description": "Choose a light to control.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "controlled_entity": "Light entity"
                 }
             },
             "light_options": {
-                "title": "Configure light options",
-                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "title": "Configure {controlled_entity}",
+                "description": "Automate a light based on illuminancy and required states. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "motion_sensor": "Motion sensor (optional)",
-                    "auto_off_minutes": "Auto off (optional)",
-                    "manual_control_minutes": "Manual control (optional)",
-                    "illuminance_sensor": "Illuminance sensor (optional)",
-                    "illuminance_cutoff": "Illuminance cutoff (optional)",
-                    "on_blocker_entity": "Block turning on light (optional)",
-                    "off_blocker_entity": "Block turning off light (optional)"
+                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (OPTIONAL):",
+                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (OPTIONAL):",
+                    "auto_off_minutes": "Automatic off (OPTIONAL):",
+                    "illuminance_sensor": "Illuminance sensor (OPTIONAL):",
+                    "illuminance_cutoff": "Illuminance cutoff (OPTIONAL):",
+                    "manual_control_minutes": "Manual control (OPTIONAL):"
                 }
             },
             "occupancy": {
                 "title": "Configure occupancy sensor",
-                "description": "Create an occupancy sensor based on motion sensor(s) and, optionally, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "description": "Create an occupancy sensor based on motion sensors, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "sensor_name": "Occupancy sensor name",
-                    "motion_sensors": "Occupancy will be detected for specified time whenever motion is detected by these sensors.",
-                    "motion_off_minutes": "Motion minutes.",
-                    "door_sensors": "OPTIONAL: Occupancy will be detected indefinitely if motion is seen in a room while all doors are closed--even after motion stops. Only add door sensors when all access points for an area have sensors.",
-                    "required_entities": "OPTIONAL: These must all be 'on' before occupancy will be detected.",
-                    "other_entities": "OPTIONAL: Occupancy will be detected if any of these are 'on'."
+                    "sensor_name": "Occupancy sensor name:",
+                    "motion_sensors": "Occupancy will be detected for specified minutes whenever motion is detected by any of these sensors (OPTIONAL):",
+                    "motion_off_minutes": "Turn off after (OPTIONAL):",
+                    "other_entities": "Occupancy will be detected if any of these sensors are 'on' (OPTIONAL):",
+                    "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided. (OPTIONAL):",
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):"
                 }
             }
         },
         "error": {
-            "manual_control_no_motion": "Manual control requires a motion sensor.",
-            "duplicate_name": "An integration with the same name already exists."
+            "duplicate_name": "An integration with the same name already exists.",
+            "light_occupancy_and_auto_off": "Occupancy sensor and automatic off cannot be used together.",
+            "light_occupancy_sensor_not_found": "Occupancy sensor is not found.",
+            "occupancy_door_needs_motion": "Door sensors require motion sensors to be specified.",
+            "occupancy_motion_needs_minutes": "Motion sensors require 'turn off after' to be specified.",
+            "occupancy_needs_trigger": "Must specify motion sensors and/or other entities.",
+            "off_minutes_required": "'Turn off after minutes' is required."
         },
         "abort": {
-            "nothing_to_control": "No entities are available to control",
-            "already_configured": "An integration with the same fan already exists."
+            "nothing_to_control": "No entities are available to control"
         }
     },
     "options": {
         "step": {
             "ceiling_fan": {
-                "title": "Configure ceiling fan controller",
+                "title": "Configure {controlled_entity}",
                 "description": "Automate a ceiling fan for comfort using the summer simmer index (SSI) as the comfort level. http://www.summersimmer.com/home.htm\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "temp_sensor": "Temperature sensor",
-                    "humidity_sensor": "Humidity sensor",
-                    "prerequisite_entity": "Prerequisite entity (optional)",
-                    "speed_min": "Minimum fan speed",
-                    "speed_max": "Maximum fan speed",
-                    "ssi_min": "Fan will start when SSI above",
-                    "ssi_max": "Fan speed will be maximum when SSI above",
-                    "manual_control_minutes": "Manual control (optional)"
+                    "temp_sensor": "Temperature sensor in the same room as the fan to be controlled:",
+                    "humidity_sensor": "Humidity sensor in the same room as the fan to be controlled:",
+                    "ssi_min": "Fan will start when SSI is above:",
+                    "ssi_max": "Fan speed will be maximum speed when SSI above:",
+                    "speed_min": "Minimum fan speed:",
+                    "speed_max": "Maximum fan speed:",
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):",
+                    "manual_control_minutes": "Manual control (OPTIONAL):"
                 }
             },
             "exhaust_fan": {
-                "title": "Configure exhaust fan controller",
-                "description": "Turn a fan on and off based on the difference in absolute humidity (g/m³) between temperature and humidity sensors in one area and reference temperature and humidity sensors in another area.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "title": "Configure {controlled_entity}",
+                "description": "Automate an exhaust fan to control humidity.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "temp_sensor": "Temperature sensor",
-                    "humidity_sensor": "Humidity sensor",
-                    "reference_temp_sensor": "Reference temperature sensor",
-                    "reference_humidity_sensor": "Reference humidity sensor",
-                    "rising_threshold": "Rising Threshold",
-                    "falling_threshold": "Falling Threshold",
-                    "manual_control_minutes": "Manual control (optional)"
+                    "temp_sensor": "Temperature sensor in the same room as the fan to be controlled:",
+                    "humidity_sensor": "Humidity sensor in the same room as the fan to be controlled:",
+                    "reference_temp_sensor": "Temperature sensor outside the room:",
+                    "reference_humidity_sensor": "Humidity sensor outside the room:",
+                    "rising_threshold": "Rising Threshold:",
+                    "falling_threshold": "Falling Threshold:",
+                    "manual_control_minutes": "Manual control (OPTIONAL):"
                 }
             },
             "light": {
-                "title": "Configure light controller",
-                "description": "Turn on a light based on motion detection, and light level. Turn off a light when there isn't motion. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "title": "Configure {controlled_entity}",
+                "description": "Automate a light based on illuminancy and required states. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "motion_sensor": "Motion sensor (optional)",
-                    "auto_off_minutes": "Auto off (optional)",
-                    "manual_control_minutes": "Manual control (optional)",
-                    "illuminance_sensor": "Illuminance sensor (optional)",
-                    "illuminance_cutoff": "Illuminance cutoff (optional)",
-                    "on_blocker_entity": "Block turning on light (optional)",
-                    "off_blocker_entity": "Block turning off light (optional)"
+                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (OPTIONAL):",
+                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (OPTIONAL):",
+                    "auto_off_minutes": "Automatic off (OPTIONAL):",
+                    "illuminance_sensor": "Illuminance sensor (OPTIONAL):",
+                    "illuminance_cutoff": "Illuminance cutoff (OPTIONAL):",
+                    "manual_control_minutes": "Manual control (OPTIONAL):"
                 }
             },
             "occupancy": {
                 "title": "Configure occupancy sensor",
-                "description": "Create an occupancy sensor based on motion sensor(s) and, optionally, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
+                "description": "Create an occupancy sensor based on motion sensors, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "sensor_name": "Occupancy sensor name",
-                    "motion_sensors": "Occupancy will be detected for specified time whenever motion is detected by these sensors.",
-                    "motion_off_minutes": "Motion minutes.",
-                    "door_sensors": "OPTIONAL: Occupancy will be detected indefinitely if motion is seen in a room while all doors are closed--even after motion stops. Only add door sensors when all access points for an area have sensors.",
-                    "required_entities": "OPTIONAL: These must all be 'on' before occupancy will be detected.",
-                    "other_entities": "OPTIONAL: Occupancy will be detected if any of these are 'on'."
+                    "sensor_name": "Occupancy sensor name:",
+                    "motion_sensors": "Occupancy will be detected for specified minutes whenever motion is detected by any of these sensors (OPTIONAL):",
+                    "motion_off_minutes": "Turn off after (OPTIONAL):",
+                    "other_entities": "Occupancy will be detected if any of these sensors are 'on' (OPTIONAL):",
+                    "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided. (OPTIONAL):",
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):"
                 }
             }
         },
         "error": {
-            "manual_control_no_motion": "Manual control requires a motion sensor."
+            "duplicate_name": "An integration with the same name already exists.",
+            "light_occupancy_and_auto_off": "Occupancy sensor and automatic off cannot be used together.",
+            "light_occupancy_sensor_not_found": "Occupancy sensor is not found.",
+            "occupancy_door_needs_motion": "Door sensors require motion sensors to be specified.",
+            "occupancy_motion_needs_minutes": "Motion sensors require 'turn off after' to be specified.",
+            "occupancy_needs_trigger": "Must specify motion sensors and/or other entities.",
+            "off_minutes_required": "'Turn off after minutes' is required."
         },
-        "abort": {
-            "already_configured": "An integration with the same fan already exists."
-        }
-    },
-    "selector": {
-        "type": {
-            "options": {
-                "ceiling_fan": "Automatically control a ceiling fan for maximum comfort.",
-                "exhaust_fan": "Automatically control an exhaust fan to remove humidity.",
-                "light": "Automatically control a light based on occupancy and illuminance.",
-                "occupancy": "Create occupancy sensors based on multiple factors including motion."
-            }
-        }
+        "abort": {}
     }
 }

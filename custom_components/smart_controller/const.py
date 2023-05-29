@@ -15,8 +15,8 @@ ON_OFF_STATES: Final = (STATE_ON, STATE_OFF)
 
 GRAMS_PER_CUBIC_METER: Final = "g/m³"
 
-DEFAULT_CEILING_SSI_MIN: Final = 83.0
-DEFAULT_CEILING_SSI_MAX: Final = 91.0
+DEFAULT_CEILING_SSI_MIN_FAHRENHEIT: Final = 81.0
+DEFAULT_CEILING_SSI_MAX_FAHRENHEIT: Final = 91.0
 
 DEFAULT_EXHAUST_FALLING_THRESHOLD: Final = 0.5
 DEFAULT_EXHAUST_RISING_THRESHOLD: Final = 2.0
@@ -45,11 +45,12 @@ class CeilingFanConfig(StrEnum):
     CONTROLLED_ENTITY = "controlled_entity"
     TEMP_SENSOR = "temp_sensor"
     HUMIDITY_SENSOR = "humidity_sensor"
-    PREREQUISITE_ENTITY = "prerequisite_entity"
-    SPEED_MAX = "speed_max"
-    SPEED_MIN = "speed_min"
-    SSI_MAX = "ssi_max"
     SSI_MIN = "ssi_min"
+    SSI_MAX = "ssi_max"
+    SPEED_MIN = "speed_min"
+    SPEED_MAX = "speed_max"
+    REQUIRED_ON_ENTITIES = "required_on_entities"
+    REQUIRED_OFF_ENTITIES = "required_off_entities"
     MANUAL_CONTROL_MINUTES = "manual_control_minutes"
 
 
@@ -71,12 +72,11 @@ class LightConfig(StrEnum):
 
     CONTROLLED_ENTITY = "controlled_entity"
     AUTO_OFF_MINUTES = "auto_off_minutes"
-    MANUAL_CONTROL_MINUTES = "manual_control_minutes"
-    MOTION_SENSOR = "motion_sensor"
-    ILLUMINANCE_CUTOFF = "illuminance_cutoff"
     ILLUMINANCE_SENSOR = "illuminance_sensor"
-    ON_BLOCKER_ENTITY = "on_blocker_entity"
-    OFF_BLOCKER_ENTITY = "off_blocker_entity"
+    ILLUMINANCE_CUTOFF = "illuminance_cutoff"
+    REQUIRED_ON_ENTITIES = "required_on_entities"
+    REQUIRED_OFF_ENTITIES = "required_off_entities"
+    # MANUAL_CONTROL_MINUTES = "manual_control_minutes"
 
 
 class OccupancyConfig(StrEnum):
@@ -84,7 +84,8 @@ class OccupancyConfig(StrEnum):
 
     SENSOR_NAME = "sensor_name"
     MOTION_SENSORS = "motion_sensors"
-    MOTION_OFF_MINUTES = "motion_off_minutes"
+    OFF_MINUTES = "motion_off_minutes"
     DOOR_SENSORS = "door_sensors"
-    REQUIRED_ENTITIES = "required_entities"
     OTHER_ENTITIES = "other_entities"
+    REQUIRED_ON_ENTITIES = "required_on_entities"
+    REQUIRED_OFF_ENTITIES = "required_off_entities"

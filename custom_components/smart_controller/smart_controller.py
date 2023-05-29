@@ -40,11 +40,12 @@ class SmartController:
         self.config_entry = config_entry
         self._state = initial_state
         self.data: Mapping[str, Any] = config_entry.data | config_entry.options
-        self.controlled_entity: str = self.data.get(CommonConfig.CONTROLLED_ENTITY)
+        self.controlled_entity: str | None = self.data.get(
+            CommonConfig.CONTROLLED_ENTITY
+        )
         self._is_on_states = is_on_states or DEFAULT_ON_STATES
-
         self.name: str | None = None
-        self.tracked_entity_ids: list[str] | None = None
+        self.tracked_entity_ids: list[str] = []
         self._timer_unsub: CALLBACK_TYPE | None = None
         self._unsubscribers: list[CALLBACK_TYPE] = []
         self._listeners: list[CALLBACK_TYPE] = []
@@ -105,25 +106,6 @@ class SmartController:
     def is_on(self):
         """Return the status of the sensor."""
         return self._state in self._is_on_states
-
-    async def _on_state_change(self, old_state: State, new_state: State) -> None:
-        if (
-            new_state is None
-            or new_state.state in IGNORE_STATES
-            or (old_state and old_state.state == new_state.state)
-        ):
-            return
-
-        _LOGGER.debug(
-            "%s; state=%s; %s changed from '%s' to '%s'",
-            self.name,
-            self._state,
-            new_state.name,
-            old_state.state if old_state else None,
-            new_state.state,
-        )
-
-        await self.on_state_change(new_state)
 
     def set_timer(self, period: timedelta | None) -> None:
         """Start a timer or cancel a timer if time period is 'None'."""
@@ -192,3 +174,24 @@ class SmartController:
             target={ATTR_ENTITY_ID: self.controlled_entity},
             context=MyContext(),
         )
+
+    # #### Internal methods ####
+
+    async def _on_state_change(self, old_state: State | None, new_state: State) -> None:
+        if (
+            new_state is None
+            or new_state.state in IGNORE_STATES
+            or (old_state and old_state.state == new_state.state)
+        ):
+            return
+
+        _LOGGER.debug(
+            "%s; state=%s; %s changed from '%s' to '%s'",
+            self.name,
+            self._state,
+            new_state.name,
+            old_state.state if old_state else None,
+            new_state.state,
+        )
+
+        await self.on_state_change(new_state)

@@ -4,8 +4,10 @@ from __future__ import annotations
 from datetime import timedelta
 
 from homeassistant.backports.enum import StrEnum
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    ATTR_DEVICE_CLASS,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_OFF,
@@ -34,7 +36,7 @@ class MyEvent(StrEnum):
 
     OFF = "off"
     ON = "on"
-    MOTION = "motion"
+    REFRESH = "refresh"
     TIMER = "timer"
 
 
@@ -45,51 +47,84 @@ class LightController(SmartController):
         """Initialize the Light Controller."""
         super().__init__(hass, config_entry, MyState.INIT)
 
-        self.motion_sensor: str | None = self.data.get(LightConfig.MOTION_SENSOR)
-        self.illuminance_sensor = self.data.get(LightConfig.ILLUMINANCE_SENSOR)
-        self.illuminance_cutoff = self.data.get(LightConfig.ILLUMINANCE_CUTOFF)
-        self.on_blocker = self.data.get(LightConfig.ON_BLOCKER_ENTITY)
-        self.off_blocker = self.data.get(LightConfig.OFF_BLOCKER_ENTITY)
+        self.illuminance_sensor: str | None = self.data.get(
+            LightConfig.ILLUMINANCE_SENSOR
+        )
+        self.illuminance_cutoff: int | None = self.data.get(
+            LightConfig.ILLUMINANCE_CUTOFF
+        )
 
-        auto_off_minutes = self.data.get(LightConfig.AUTO_OFF_MINUTES)
-        manual_control_minutes = self.data.get(LightConfig.MANUAL_CONTROL_MINUTES)
+        auto_off_minutes: int | None = self.data.get(LightConfig.AUTO_OFF_MINUTES)
+        # manual_control_minutes: int | None = self.data.get(
+        #    LightConfig.MANUAL_CONTROL_MINUTES
+        # )
 
         self._auto_off_period = (
             timedelta(minutes=auto_off_minutes) if auto_off_minutes else None
         )
 
-        self._manual_control_period = (
-            timedelta(minutes=manual_control_minutes)
-            if manual_control_minutes
-            else None
+        self._low_light: bool | None = None if self.illuminance_sensor else True
+
+        required_on_entities: list[str] = self.data.get(
+            LightConfig.REQUIRED_ON_ENTITIES, []
         )
+        required_off_entities: list[str] = self.data.get(
+            LightConfig.REQUIRED_OFF_ENTITIES, []
+        )
+        self._required = {
+            **{k: STATE_ON for k in required_on_entities},
+            **{k: STATE_OFF for k in required_off_entities},
+        }
+        self._required_states: dict[str, str | None] = {k: None for k in self._required}
 
-        # TODO: occupancy and illuminance controlled lights
-        # Modes:
-        # 1a) Motion lights with illuminance and "on" blockers (motion and timer == occupancy)
-        # 1b) Occupancy lights with illuminance and "on" blockers
-        # 2) Illuminance lights (driveway)
-        # 3) Manual lights with timer for auto-off
+        # self._manual_control_period = (
+        #    timedelta(minutes=manual_control_minutes)
+        #    if manual_control_minutes
+        #    else None
+        # )
 
-        # TODO: illuminance blocker should only be considered when light is "off"
+        self._occupancy_mode = False
 
         self.tracked_entity_ids = remove_empty(
             [
                 self.controlled_entity,
-                self.motion_sensor,
+                self.illuminance_sensor,
+                *self._required,
             ]
+        )
+
+    async def async_setup(self, hass: HomeAssistant) -> None:
+        """Subscribe to state change events for all tracked entities."""
+        await super().async_setup(hass)
+
+        self._occupancy_mode = any(
+            (
+                (state := hass.states.get(required_entity)) is not None
+                and state.domain == Platform.BINARY_SENSOR
+                and state.attributes.get(ATTR_DEVICE_CLASS)
+                == BinarySensorDeviceClass.OCCUPANCY
+            )
+            for required_entity in self._required
         )
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
-        match state.entity_id:
-            case self.controlled_entity if state.state in ON_OFF_STATES:
+        if state.entity_id == self.controlled_entity:
+            if state.state in ON_OFF_STATES:
                 await self._process_event(
                     MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
                 )
 
-            case self.motion_sensor if state.state == STATE_ON:
-                await self._process_event(MyEvent.MOTION)
+        elif state.entity_id == self.illuminance_sensor:
+            assert self.illuminance_cutoff
+            if state.state is not None:
+                self._low_light = float(state.state) <= self.illuminance_cutoff
+                await self._process_event(MyEvent.REFRESH)
+
+        elif state.entity_id in self._required_states:
+            if state.state in ON_OFF_STATES:
+                self._required_states[state.entity_id] = state.state
+                await self._process_event(MyEvent.REFRESH)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
@@ -103,6 +138,15 @@ class LightController(SmartController):
             event,
         )
 
+        def low_light():
+            return self._low_light
+
+        def have_required():
+            return self._required_states == self._required
+
+        def occupancy_mode():
+            return self._occupancy_mode
+
         match (self._state, event):
             case (MyState.INIT, MyEvent.OFF):
                 self.set_state(MyState.OFF)
@@ -112,64 +156,53 @@ class LightController(SmartController):
                 self.set_timer(self._auto_off_period)
 
             case (MyState.OFF, MyEvent.ON):
-                if self._manual_control_period:
-                    self.set_state(MyState.ON_MANUAL)
-                    self.set_timer(self._manual_control_period)
-                else:
-                    self.set_state(MyState.ON)
-                    self.set_timer(self._auto_off_period)
-
-            case (MyState.OFF, MyEvent.MOTION):
-                if self.on_blocker:
-                    blocker = self.hass.states.get(self.on_blocker)
-                    if blocker and blocker.state == STATE_ON:
-                        return
-
-                if self.illuminance_sensor and self.illuminance_cutoff is not None:
-                    illuminance = self.hass.states.get(self.illuminance_sensor)
-                    if (
-                        illuminance
-                        and float(illuminance.state) > self.illuminance_cutoff
-                    ):
-                        return
-
-                await self._set_light_mode(STATE_ON)
-                self.set_state(MyState.ON)
+                self.set_state(MyState.ON_MANUAL)
                 self.set_timer(self._auto_off_period)
 
+            case (MyState.OFF, MyEvent.REFRESH):
+                if low_light() and have_required():
+                    self.set_state(MyState.ON)
+                    await self._set_light_mode(STATE_ON)
+
             case (MyState.ON, MyEvent.OFF):
-                if self._manual_control_period:
+                self.set_state(MyState.OFF_MANUAL)
+                self.set_timer(None)
+
+            case (MyState.ON, MyEvent.REFRESH):
+                if not have_required():
+                    self.set_state(MyState.OFF)
+                    self.set_timer(None)
+                    await self._set_light_mode(STATE_OFF)
+
+            case (MyState.ON, MyEvent.TIMER):
+                assert not occupancy_mode()
+                self.set_state(MyState.OFF)
+                await self._set_light_mode(STATE_OFF)
+
+            case (MyState.OFF_MANUAL, MyEvent.ON):
+                if have_required():
+                    self.set_state(MyState.ON)
+                else:
+                    self.set_state(MyState.ON_MANUAL)
+
+            case (MyState.OFF_MANUAL, MyEvent.REFRESH):
+                if not have_required():
+                    self.set_state(MyState.OFF)
+
+            case (MyState.ON_MANUAL, MyEvent.OFF):
+                if have_required():
                     self.set_state(MyState.OFF_MANUAL)
-                    self.set_timer(self._manual_control_period)
                 else:
                     self.set_state(MyState.OFF)
 
-            case (MyState.ON, MyEvent.MOTION):
-                self.set_timer(self._auto_off_period)
-
-            case (MyState.ON, MyEvent.TIMER):
-                if self.off_blocker:
-                    blocker = self.hass.states.get(self.off_blocker)
-                    if blocker and blocker.state == STATE_ON:
-                        return
-
-                await self._set_light_mode(STATE_OFF)
-                self.set_state(MyState.OFF)
-
-            case (MyState.OFF_MANUAL, MyEvent.ON):
-                self.set_state(MyState.ON)
-                self.set_timer(self._auto_off_period)
-
-            case (MyState.OFF_MANUAL, MyEvent.TIMER):
-                self.set_state(MyState.OFF)
-
-            case (MyState.ON_MANUAL, MyEvent.OFF):
-                self.set_state(MyState.OFF)
-                self.set_timer(None)
+            case (MyState.ON_MANUAL, MyEvent.REFRESH):
+                if have_required():
+                    self.set_state(MyState.ON)
 
             case (MyState.ON_MANUAL, MyEvent.TIMER):
-                self.set_state(MyState.ON)
-                self.set_timer(self._auto_off_period)
+                assert not occupancy_mode()
+                self.set_state(MyState.OFF)
+                await self._set_light_mode(STATE_OFF)
 
             case _:
                 _LOGGER.debug(

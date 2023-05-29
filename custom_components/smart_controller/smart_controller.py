@@ -115,9 +115,13 @@ class SmartController:
     def set_timer(self, period: timedelta | None) -> None:
         """Start a timer or cancel a timer if time period is 'None'."""
 
+        async def dispatch_timer_expiration() -> None:
+            await self.on_timer_expired()
+            await self._fire_events()
+
         def timer_expired(_: datetime) -> None:
             self._timer_unsub = None
-            self.hass.add_job(self.on_timer_expired)
+            self.hass.add_job(dispatch_timer_expiration)
 
         if self._timer_unsub is not None:
             self._unsubscribers.remove(self._timer_unsub)
@@ -139,6 +143,9 @@ class SmartController:
 
     def set_state(self, new_state: str):
         """Change the current state."""
+        if self._state == new_state:
+            return
+
         _LOGGER.debug(
             "%s; state=%s; changing state to '%s'",
             self.name,

@@ -8,23 +8,22 @@ logger:
     custom_components.smart_controller: debug
     custom_components.virtual: debug
 
-# https://www.home-assistant.io/integrations/group/
-group:
-  any_sleeping:
-    name: Anyone Sleeping
-    all: false
-    icon: mdi:sleep
-    entities:
-      - input_boolean.lyman_sleeping
-      - input_boolean.rachele_sleeping
-
 # https://github.com/twrecked/hass-virtual
 virtual:
 
 light:
   - platform: virtual
-    name: 'Office Light'
-    initial_value: 'off'
+    name: "Bathroom Light"
+    initial_value: "off"
+    initial_availability: true
+    support_brightness: true
+    initial_brightness: 100
+    support_color: false
+    support_white_value: false
+
+  - platform: virtual
+    name: "Office Light"
+    initial_value: "off"
     initial_availability: true
     support_brightness: true
     initial_brightness: 100
@@ -33,65 +32,65 @@ light:
 
 fan:
   - platform: virtual
-    name: 'Office Fan'
-    initial_value: 'off'
-    #speed: true
-    speed_count: 4
+    name: "Bathroom Fan"
+    initial_value: "off"
+    speed_count: 1
     direction: false
     oscillate: false
     initial_availability: true
 
   - platform: virtual
-    name: 'Bathroom Fan'
-    initial_value: 'off'
-    #speed: true
-    speed_count: 1
+    name: "Office Fan"
+    initial_value: "off"
+    speed_count: 4
     direction: false
     oscillate: false
     initial_availability: true
 
 binary_sensor:
   - platform: virtual
+    name: Anyone Home
+    class: occupancy
+    initial_availability: true
+    initial_value: "off"
+
+  - platform: virtual
+    name: Bathroom Motion
+    class: motion
+    initial_availability: true
+    initial_value: "off"
+
+  - platform: virtual
     name: Office Motion
     class: motion
     initial_availability: true
+    initial_value: "off"
 
   - platform: virtual
-    name: Office Occupancy
-    class: occupancy
+    name: Office Door
+    class: door
     initial_availability: true
-    initial_value: false
+    initial_value: "off"
+
+  - platform: virtual
+    name: Office Monitor On
+    initial_availability: true
+    initial_value: "off"
 
 sensor:
   - platform: virtual
-    name: Office Illuminance
+    name: Bathroom Illuminance
     class: illuminance
     initial_availability: true
-    initial_value: 80.0
-    unit_of_measurement: '%'
-
-  - platform: virtual
-    name: Office Temperature
-    class: temperature
-    initial_availability: true
-    initial_value: 77.0
-    unit_of_measurement: '°F'
-    persistent: true
-
-  - platform: virtual
-    name: Office Humidity
-    class: humidity
-    initial_availability: true
-    initial_value: 50.0
-    unit_of_measurement: '%'
-    persistent: true
+    initial_value: 20.0
+    unit_of_measurement: "%"
 
   - platform: virtual
     name: Bathroom Temperature
     class: temperature
     initial_availability: true
     initial_value: 77.0
-    unit_of_measurement: '°F'
+    unit_of_measurement: "°F"
     persistent: true
 
   - platform: virtual
@@ -99,5 +98,28 @@ sensor:
     class: humidity
     initial_availability: true
     initial_value: 50.0
-    unit_of_measurement: '%'
+    unit_of_measurement: "%"
+    persistent: true
+
+  - platform: virtual
+    name: Office Illuminance
+    class: illuminance
+    initial_availability: true
+    initial_value: 80.0
+    unit_of_measurement: "%"
+
+  - platform: virtual
+    name: Office Temperature
+    class: temperature
+    initial_availability: true
+    initial_value: 77.0
+    unit_of_measurement: "°F"
+    persistent: true
+
+  - platform: virtual
+    name: Office Humidity
+    class: humidity
+    initial_availability: true
+    initial_value: 50.0
+    unit_of_measurement: "%"
     persistent: true

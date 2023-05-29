@@ -134,7 +134,7 @@ def make_ceiling_fan_schema(
         {
             # temperature sensor
             vol.Required(
-                CeilingFanConfig.TEMP_SENSOR,
+                str(CeilingFanConfig.TEMP_SENSOR),
                 default=user_input.get(CeilingFanConfig.TEMP_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=list(temp_sensors)),

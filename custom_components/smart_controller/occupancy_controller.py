@@ -56,13 +56,11 @@ class OccupancyController(SmartController):
             timedelta(minutes=motion_off_minutes) if motion_off_minutes else None
         )
 
-        self._other_states: dict[str, str | None] = {
-            id: None for id in self.data.get(OccupancyConfig.OTHER_ENTITIES, [])
-        }
+        self._other_entities: list[str] = self.data.get(
+            OccupancyConfig.OTHER_ENTITIES, []
+        )
 
-        self._door_states: dict[str, str | None] = {
-            id: None for id in self.data.get(OccupancyConfig.DOOR_SENSORS, [])
-        }
+        self._door_sensors: list[str] = self.data.get(OccupancyConfig.DOOR_SENSORS, [])
 
         required_on_entities: list[str] = self.data.get(
             OccupancyConfig.REQUIRED_ON_ENTITIES, []
@@ -74,50 +72,41 @@ class OccupancyController(SmartController):
             **{k: STATE_ON for k in required_on_entities},
             **{k: STATE_OFF for k in required_off_entities},
         }
-        self._required_states: dict[str, str | None] = {k: None for k in self._required}
 
         self.tracked_entity_ids = remove_empty(
             [
                 self.controlled_entity,
                 *self._motion_sensors,
-                *self._other_states,
-                *self._door_states,
+                *self._other_entities,
+                *self._door_sensors,
                 *self._required,
             ]
         )
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
-        if state.entity_id in self._motion_sensors and state.state == STATE_ON:
-            self._process_event(MyEvent.MOTION)
+        if state.entity_id in self._motion_sensors:
+            if state.state == STATE_ON:
+                self.fire_event(MyEvent.MOTION)
 
-        elif state.entity_id in self._other_states:
+        elif state.entity_id in self._other_entities:
             if state.state in ON_OFF_STATES:
-                self._other_states[state.entity_id] = state.state
-                self._process_event(MyEvent.UPDATE)
+                self.fire_event(MyEvent.UPDATE)
 
-        elif state.entity_id in self._door_states:
-            if state.state in ON_OFF_STATES:
-                self._door_states[state.entity_id] = state.state
-                if any(value == STATE_ON for value in self._door_states.values()):
-                    self._process_event(MyEvent.DOOR_OPEN)
+        elif state.entity_id in self._door_sensors:
+            if state.state in STATE_ON:
+                self.fire_event(MyEvent.DOOR_OPEN)
 
-        elif state.entity_id in self._required_states:
+        elif state.entity_id in self._required:
             if state.state in ON_OFF_STATES:
-                self._required_states[state.entity_id] = state.state
-                self._process_event(MyEvent.UPDATE)
+                self.fire_event(MyEvent.UPDATE)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
-        self._process_event(MyEvent.TIMER)
+        self.fire_event(MyEvent.TIMER)
 
-    def _process_event(self, event: MyEvent) -> None:
-        _LOGGER.debug(
-            "%s; state=%s; processing '%s' event",
-            self.name,
-            self._state,
-            event,
-        )
+    async def on_event(self, event: MyEvent) -> None:
+        """Handle controller events."""
 
         def enter_unoccupied_state() -> None:
             self.set_timer(None)
@@ -136,15 +125,25 @@ class OccupancyController(SmartController):
             self.set_state(MyState.OTHER)
 
         def have_other() -> bool:
-            return any(value == STATE_ON for value in self._other_states.values())
+            for entity in self._other_entities:
+                state = self.hass.states.get(entity)
+                if state and state.state == STATE_ON:
+                    return True
+            return False
 
         def doors_closed() -> bool:
-            return any(self._door_states) and all(
-                value == STATE_ON for value in self._door_states.values()
-            )
+            closed: list[bool] = []
+            for entity in self._door_sensors:
+                state = self.hass.states.get(entity)
+                closed.append(state.state == STATE_ON if state else False)
+            return any(closed) and all(closed)
 
         def have_required() -> bool:
-            return self._required == self._required_states
+            actual: dict[str, str | None] = {}
+            for entity in self._required:
+                state = self.hass.states.get(entity)
+                actual[entity] = state.state if state else None
+            return actual == self._required
 
         match (self._state, event):
             case (MyState.UNOCCUPIED, MyEvent.MOTION) if have_required():

@@ -348,7 +348,9 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
             # required 'off' entities
             vol.Optional(
                 str(LightConfig.REQUIRED_OFF_ENTITIES),
-                default=user_input.get(LightConfig.REQUIRED_OFF_ENTITIES, vol.UNDEFINED),
+                default=user_input.get(
+                    LightConfig.REQUIRED_OFF_ENTITIES, vol.UNDEFINED
+                ),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(required_entities), multiple=True
@@ -365,7 +367,9 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
                 "illumininance",
                 default=user_input.get(LightConfig.ILLUMINANCE_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
-                selector.EntitySelectorConfig(include_entities=list(illuminance_sensors)),
+                selector.EntitySelectorConfig(
+                    include_entities=list(illuminance_sensors)
+                ),
             ),
             # illuminance threshold
             vol.Inclusive(

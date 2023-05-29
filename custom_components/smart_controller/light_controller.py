@@ -63,8 +63,6 @@ class LightController(SmartController):
             timedelta(minutes=auto_off_minutes) if auto_off_minutes else None
         )
 
-        self._low_light: bool | None = None if self.illuminance_sensor else True
-
         required_on_entities: list[str] = self.data.get(
             LightConfig.REQUIRED_ON_ENTITIES, []
         )
@@ -75,7 +73,6 @@ class LightController(SmartController):
             **{k: STATE_ON for k in required_on_entities},
             **{k: STATE_OFF for k in required_off_entities},
         }
-        self._required_states: dict[str, str | None] = {k: None for k in self._required}
 
         # self._manual_control_period = (
         #    timedelta(minutes=manual_control_minutes)
@@ -111,41 +108,45 @@ class LightController(SmartController):
         """Handle entity state changes from base."""
         if state.entity_id == self.controlled_entity:
             if state.state in ON_OFF_STATES:
-                await self._process_event(
-                    MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
-                )
+                self.fire_event(MyEvent.ON if state.state == STATE_ON else MyEvent.OFF)
 
         elif state.entity_id == self.illuminance_sensor:
-            assert self.illuminance_cutoff
             if state.state is not None:
-                self._low_light = float(state.state) <= self.illuminance_cutoff
-                await self._process_event(MyEvent.REFRESH)
+                self.fire_event(MyEvent.REFRESH)
 
-        elif state.entity_id in self._required_states:
+        elif state.entity_id in self._required:
             if state.state in ON_OFF_STATES:
-                self._required_states[state.entity_id] = state.state
-                await self._process_event(MyEvent.REFRESH)
+                self.fire_event(MyEvent.REFRESH)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
-        await self._process_event(MyEvent.TIMER)
+        self.fire_event(MyEvent.TIMER)
 
-    async def _process_event(self, event: MyEvent) -> None:
-        _LOGGER.debug(
-            "%s; state=%s; processing '%s' event",
-            self.name,
-            self._state,
-            event,
-        )
+    async def on_event(self, event: MyEvent) -> None:
+        """Handle controller events."""
 
-        def low_light():
-            return self._low_light
+        def acceptable_light_level():
+            if self.illuminance_sensor and self.illuminance_cutoff is not None:
+                state = self.hass.states.get(self.illuminance_sensor)
+                if state and state.state is not None:
+                    return float(state.state) <= self.illuminance_cutoff
+            return True
 
         def have_required():
-            return self._required_states == self._required
+            actual: dict[str, str | None] = {}
+            for entity in self._required:
+                state = self.hass.states.get(entity)
+                actual[entity] = state.state if state else None
+            return actual == self._required
 
         def occupancy_mode():
             return self._occupancy_mode
+
+        async def set_light_mode(mode: str):
+            await self.async_service_call(
+                Platform.LIGHT,
+                SERVICE_TURN_ON if mode == STATE_ON else SERVICE_TURN_OFF,
+            )
 
         match (self._state, event):
             case (MyState.INIT, MyEvent.OFF):
@@ -160,9 +161,9 @@ class LightController(SmartController):
                 self.set_timer(self._auto_off_period)
 
             case (MyState.OFF, MyEvent.REFRESH):
-                if low_light() and have_required():
+                if acceptable_light_level() and have_required():
                     self.set_state(MyState.ON)
-                    await self._set_light_mode(STATE_ON)
+                    await set_light_mode(STATE_ON)
 
             case (MyState.ON, MyEvent.OFF):
                 self.set_state(MyState.OFF_MANUAL)
@@ -172,12 +173,12 @@ class LightController(SmartController):
                 if not have_required():
                     self.set_state(MyState.OFF)
                     self.set_timer(None)
-                    await self._set_light_mode(STATE_OFF)
+                    await set_light_mode(STATE_OFF)
 
             case (MyState.ON, MyEvent.TIMER):
                 assert not occupancy_mode()
                 self.set_state(MyState.OFF)
-                await self._set_light_mode(STATE_OFF)
+                await set_light_mode(STATE_OFF)
 
             case (MyState.OFF_MANUAL, MyEvent.ON):
                 if have_required():
@@ -202,7 +203,7 @@ class LightController(SmartController):
             case (MyState.ON_MANUAL, MyEvent.TIMER):
                 assert not occupancy_mode()
                 self.set_state(MyState.OFF)
-                await self._set_light_mode(STATE_OFF)
+                await set_light_mode(STATE_OFF)
 
             case _:
                 _LOGGER.debug(
@@ -211,9 +212,3 @@ class LightController(SmartController):
                     self._state,
                     event,
                 )
-
-    async def _set_light_mode(self, mode: str):
-        await self.async_service_call(
-            Platform.LIGHT,
-            SERVICE_TURN_ON if mode == STATE_ON else SERVICE_TURN_OFF,
-        )

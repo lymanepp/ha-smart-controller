@@ -49,6 +49,8 @@ class SmartController:
         self._timer_unsub: CALLBACK_TYPE | None = None
         self._unsubscribers: list[CALLBACK_TYPE] = []
         self._listeners: list[CALLBACK_TYPE] = []
+        self._queued_events: list[Any] = []
+        self._started: bool = False
 
     async def async_setup(self, hass) -> None:
         """Subscribe to state change events for all tracked entities."""
@@ -62,6 +64,9 @@ class SmartController:
                 _LOGGER.warning(
                     "%s; referenced entity '%s' is missing.", self.name, entity_id
                 )
+
+        await self._fire_events()
+        self._started = True
 
         async def on_state_event(event: Event) -> None:
             # ignore state change events triggered by service calls from derived controllers
@@ -143,6 +148,10 @@ class SmartController:
         self._state = new_state
         self.async_update_listeners()
 
+    def fire_event(self, event: Any) -> None:
+        """Fire an event to the controller."""
+        self._queued_events.insert(0, event)
+
     async def on_state_change(self, state: State) -> None:
         """Handle tracked entity state changes."""
         raise NotImplementedError("Must implement 'on_state_change' method.")
@@ -150,6 +159,10 @@ class SmartController:
     async def on_timer_expired(self) -> None:
         """Handle timer expiration."""
         raise NotImplementedError("Must implement 'on_timer_expired' method.")
+
+    async def on_event(self, event: Any) -> None:
+        """Handle controller events."""
+        raise NotImplementedError("Must implement 'on_event' method.")
 
     async def async_service_call(
         self,
@@ -195,3 +208,19 @@ class SmartController:
         )
 
         await self.on_state_change(new_state)
+
+        if self._started:
+            await self._fire_events()
+
+    async def _fire_events(self) -> None:
+        while self._queued_events:
+            event = self._queued_events.pop()
+
+            _LOGGER.debug(
+                "%s; state=%s; processing '%s' event",
+                self.name,
+                self._state,
+                event,
+            )
+
+            await self.on_event(event)

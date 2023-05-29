@@ -43,8 +43,8 @@ exclude = ["custom_components/virtual"]
 [flake8-pytest-style]
 fixture-parentheses = false
 
-[pyupgrade]
-keep-runtime-typing = true
+#[pyupgrade]
+#keep-runtime-typing = true
 
 [mccabe]
 max-complexity = 25

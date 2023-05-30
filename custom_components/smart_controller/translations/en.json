@@ -7,7 +7,7 @@
                     "ceiling_fan": "Ceiling fan",
                     "exhaust_fan": "Exhaust fan",
                     "light": "Light",
-                    "occupancy": "Occupancy sensor"
+                    "occupancy": "Occupancy"
                 }
             },
             "ceiling_fan": {
@@ -27,9 +27,9 @@
                     "ssi_max": "Fan speed will be maximum speed when SSI above:",
                     "speed_min": "Minimum fan speed:",
                     "speed_max": "Maximum fan speed:",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):",
-                    "manual_control_minutes": "Manual control (OPTIONAL):"
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):",
+                    "manual_control_minutes": "Manual control (optional):"
                 }
             },
             "exhaust_fan": {
@@ -49,7 +49,7 @@
                     "reference_humidity_sensor": "Humidity sensor outside the room:",
                     "rising_threshold": "Rising Threshold:",
                     "falling_threshold": "Falling Threshold:",
-                    "manual_control_minutes": "Manual control (OPTIONAL):"
+                    "manual_control_minutes": "Manual control (optional):"
                 }
             },
             "light": {
@@ -63,12 +63,12 @@
                 "title": "Configure {controlled_entity}",
                 "description": "Automate a light based on illuminancy and required states. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (OPTIONAL):",
-                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (OPTIONAL):",
-                    "auto_off_minutes": "Automatic off (OPTIONAL):",
-                    "illuminance_sensor": "Illuminance sensor (OPTIONAL):",
-                    "illuminance_cutoff": "Illuminance cutoff (OPTIONAL):",
-                    "manual_control_minutes": "Manual control (OPTIONAL):"
+                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (optional):",
+                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (optional):",
+                    "auto_off_minutes": "Automatic off (optional):",
+                    "illuminance_sensor": "Illuminance sensor (optional):",
+                    "illuminance_cutoff": "Illuminance cutoff (optional):",
+                    "manual_control_minutes": "Manual control (optional):"
                 }
             },
             "occupancy": {
@@ -76,21 +76,20 @@
                 "description": "Create an occupancy sensor based on motion sensors, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "sensor_name": "Occupancy sensor name:",
-                    "motion_sensors": "Occupancy will be detected for specified minutes whenever motion is detected by any of these sensors (OPTIONAL):",
-                    "motion_off_minutes": "Turn off after (OPTIONAL):",
-                    "other_entities": "Occupancy will be detected if any of these sensors are 'on' (OPTIONAL):",
-                    "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided. (OPTIONAL):",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):"
+                    "motion_sensors": "Occupancy will be detected for specified minutes whenever motion is detected by any of these sensors (optional):",
+                    "motion_off_minutes": "Turn off after (optional):",
+                    "other_entities": "Occupancy will be detected if any of these sensors are 'on' (optional):",
+                    "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided (optional):",
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):"
                 }
             }
         },
         "error": {
+            "door_needs_motion": "Door sensors require motion sensors to be specified.",
             "duplicate_name": "An integration with the same name already exists.",
-            "light_occupancy_and_auto_off": "Occupancy sensor and automatic off cannot be used together.",
-            "light_occupancy_sensor_not_found": "Occupancy sensor is not found.",
-            "occupancy_door_needs_motion": "Door sensors require motion sensors to be specified.",
-            "occupancy_motion_needs_minutes": "Motion sensors require 'turn off after' to be specified.",
+            "motion_needs_minutes": "Motion sensors require 'turn off after' to be specified.",
+            "occupancy_and_auto_off": "Occupancy sensor and automatic off cannot be used together.",
             "occupancy_needs_trigger": "Must specify motion sensors and/or other entities.",
             "off_minutes_required": "'Turn off after minutes' is required."
         },
@@ -110,9 +109,9 @@
                     "ssi_max": "Fan speed will be maximum speed when SSI above:",
                     "speed_min": "Minimum fan speed:",
                     "speed_max": "Maximum fan speed:",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):",
-                    "manual_control_minutes": "Manual control (OPTIONAL):"
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):",
+                    "manual_control_minutes": "Manual control (optional):"
                 }
             },
             "exhaust_fan": {
@@ -125,19 +124,19 @@
                     "reference_humidity_sensor": "Humidity sensor outside the room:",
                     "rising_threshold": "Rising Threshold:",
                     "falling_threshold": "Falling Threshold:",
-                    "manual_control_minutes": "Manual control (OPTIONAL):"
+                    "manual_control_minutes": "Manual control (optional):"
                 }
             },
             "light": {
                 "title": "Configure {controlled_entity}",
                 "description": "Automate a light based on illuminancy and required states. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (OPTIONAL):",
-                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (OPTIONAL):",
-                    "auto_off_minutes": "Automatic off (OPTIONAL):",
-                    "illuminance_sensor": "Illuminance sensor (OPTIONAL):",
-                    "illuminance_cutoff": "Illuminance cutoff (OPTIONAL):",
-                    "manual_control_minutes": "Manual control (OPTIONAL):"
+                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (optional):",
+                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (optional):",
+                    "auto_off_minutes": "Automatic off (optional):",
+                    "illuminance_sensor": "Illuminance sensor (optional):",
+                    "illuminance_cutoff": "Illuminance cutoff (optional):",
+                    "manual_control_minutes": "Manual control (optional):"
                 }
             },
             "occupancy": {
@@ -145,21 +144,20 @@
                 "description": "Create an occupancy sensor based on motion sensors, door sensors and other entities.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
                     "sensor_name": "Occupancy sensor name:",
-                    "motion_sensors": "Occupancy will be detected for specified minutes whenever motion is detected by any of these sensors (OPTIONAL):",
-                    "motion_off_minutes": "Turn off after (OPTIONAL):",
-                    "other_entities": "Occupancy will be detected if any of these sensors are 'on' (OPTIONAL):",
-                    "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided. (OPTIONAL):",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (OPTIONAL):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (OPTIONAL):"
+                    "motion_sensors": "Occupancy will be detected for specified minutes whenever motion is detected by any of these sensors (optional):",
+                    "motion_off_minutes": "Turn off after (optional):",
+                    "other_entities": "Occupancy will be detected if any of these sensors are 'on' (optional):",
+                    "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided (optional):",
+                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):"
                 }
             }
         },
         "error": {
             "duplicate_name": "An integration with the same name already exists.",
-            "light_occupancy_and_auto_off": "Occupancy sensor and automatic off cannot be used together.",
-            "light_occupancy_sensor_not_found": "Occupancy sensor is not found.",
-            "occupancy_door_needs_motion": "Door sensors require motion sensors to be specified.",
-            "occupancy_motion_needs_minutes": "Motion sensors require 'turn off after' to be specified.",
+            "occupancy_and_auto_off": "Occupancy sensor and automatic off cannot be used together.",
+            "door_needs_motion": "Door sensors require motion sensors to be specified.",
+            "motion_needs_minutes": "Motion sensors require 'turn off after' to be specified.",
             "occupancy_needs_trigger": "Must specify motion sensors and/or other entities.",
             "off_minutes_required": "'Turn off after minutes' is required."
         },

@@ -10,7 +10,7 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform
 from homeassistant.core import CoreState, Event, HomeAssistant
 
 from .ceiling_fan_controller import CeilingFanController
-from .const import _LOGGER, DOMAIN, Config, ControllerType
+from .const import DOMAIN, Config, ControllerType
 from .exhaust_fan_controller import ExhaustFanController
 from .light_controller import LightController
 from .occupancy_controller import OccupancyController
@@ -70,13 +70,10 @@ def _create_controller(
     match type_:
         case ControllerType.CEILING_FAN:
             return CeilingFanController(hass, config_entry)
-
         case ControllerType.EXHAUST_FAN:
             return ExhaustFanController(hass, config_entry)
-
         case ControllerType.LIGHT:
             return LightController(hass, config_entry)
-
         case ControllerType.OCCUPANCY:
             return OccupancyController(hass, config_entry)
 

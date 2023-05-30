@@ -9,7 +9,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, CommonConfig, ControllerType
+from .const import DOMAIN, Config, ControllerType
 from .entity import SmartControllerEntity
 from .smart_controller import SmartController
 
@@ -27,7 +27,7 @@ async def async_setup_entry(
 ):
     """Set up the sensor platform."""
     controller = hass.data[DOMAIN][config_entry.entry_id]
-    controller_type = config_entry.data[CommonConfig.TYPE]
+    type_ = config_entry.data[Config.CONTROLLER_TYPE]
 
     async_add_entities(
         [
@@ -37,7 +37,7 @@ async def async_setup_entry(
                 name=config_entry.title,
             )
             for entity_description in ENTITY_DESCRIPTIONS
-            if entity_description.key == controller_type
+            if entity_description.key == type_
         ]
     )
 

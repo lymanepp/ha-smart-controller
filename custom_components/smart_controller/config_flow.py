@@ -265,10 +265,10 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
     def __init__(self, config_entry: ConfigEntry):
         """Initialize options flow."""
-        data = config_entry.data | config_entry.options
+        data = dict(config_entry.data)
         self._controller_type = data.pop(Config.CONTROLLER_TYPE)
         self._controlled_entity = data.pop(Config.CONTROLLED_ENTITY, None)
-        self.original_data = data
+        self.original_data = dict(config_entry.options) or data
         self._placeholders: dict[str, str] = {}
 
     async def async_step_init(self, _: ConfigType | None = None) -> FlowResult:
@@ -302,13 +302,13 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
             assert state
             return self.async_create_entry(title=state.name, data=user_input)
 
-        schema_data = user_input or self.original_data
+        schema = make_ceiling_fan_schema(
+            self.hass, user_input or self.original_data, self._controlled_entity
+        )
 
         return self.async_show_form(
             step_id="ceiling_fan",
-            data_schema=make_ceiling_fan_schema(
-                self.hass, schema_data, self._controlled_entity
-            ),
+            data_schema=schema,
             description_placeholders=self._placeholders,
             errors=errors,
         )
@@ -326,11 +326,11 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
             assert state
             return self.async_create_entry(title=state.name, data=user_input)
 
-        schema_data = user_input or self.original_data
+        schema = make_exhaust_fan_schema(self.hass, user_input or self.original_data)
 
         return self.async_show_form(
             step_id="exhaust_fan",
-            data_schema=make_exhaust_fan_schema(self.hass, schema_data),
+            data_schema=schema,
             description_placeholders=self._placeholders,
             errors=errors,
         )
@@ -348,11 +348,11 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
             assert state
             return self.async_create_entry(title=state.name, data=user_input)
 
-        schema_data = user_input or self.original_data
+        schema = make_light_schema(self.hass, user_input or self.original_data)
 
         return self.async_show_form(
             step_id="light",
-            data_schema=make_light_schema(self.hass, schema_data),
+            data_schema=schema,
             description_placeholders=self._placeholders,
             errors=errors,
         )
@@ -367,11 +367,11 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
             sensor_name = user_input[Config.SENSOR_NAME]
             return self.async_create_entry(title=sensor_name, data=user_input)
 
-        schema_data = user_input or self.original_data
+        schema = make_occupancy_schema(self.hass, user_input or self.original_data)
 
         return self.async_show_form(
             step_id="occupancy",
-            data_schema=make_occupancy_schema(self.hass, schema_data),
+            data_schema=schema,
             errors=errors,
         )
 
@@ -393,7 +393,7 @@ def _validate_light(
 
         # If any 'required on' entities are occupancy sensors, then disallow auto-off minutes
         if not set(required_on).isdisjoint(occupancy_sensors):
-            errors["base"] = "light_occupancy_and_auto_off"
+            errors["base"] = "occupancy_and_auto_off"
             return False
 
     return True
@@ -410,11 +410,11 @@ def _validate_occupancy(user_input: ConfigType, errors: ErrorsType) -> bool:
         return False
 
     if motion_sensors and not off_minutes:
-        errors["base"] = "occupancy_motion_needs_minutes"
+        errors["base"] = "motion_needs_minutes"
         return False
 
     if door_sensors and not motion_sensors:
-        errors["base"] = "occupancy_door_needs_motion"
+        errors["base"] = "door_needs_motion"
         return False
 
     return True

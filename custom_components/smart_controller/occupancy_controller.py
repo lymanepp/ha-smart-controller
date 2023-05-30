@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant, State
 
-from .const import _LOGGER, ON_OFF_STATES, OccupancyConfig
+from .const import _LOGGER, ON_OFF_STATES, Config
 from .smart_controller import SmartController
 from .util import remove_empty
 
@@ -47,26 +47,20 @@ class OccupancyController(SmartController):
         )
 
         self.name = config_entry.title
-        self._motion_sensors: list[str] = self.data.get(
-            OccupancyConfig.MOTION_SENSORS, []
-        )
-        motion_off_minutes = self.data.get(OccupancyConfig.OFF_MINUTES)
+        self._motion_sensors: list[str] = self.data.get(Config.MOTION_SENSORS, [])
+        motion_off_minutes = self.data.get(Config.MOTION_OFF_MINUTES)
 
         self._motion_off_period = (
             timedelta(minutes=motion_off_minutes) if motion_off_minutes else None
         )
 
-        self._other_entities: list[str] = self.data.get(
-            OccupancyConfig.OTHER_ENTITIES, []
-        )
+        self._other_entities: list[str] = self.data.get(Config.OTHER_ENTITIES, [])
 
-        self._door_sensors: list[str] = self.data.get(OccupancyConfig.DOOR_SENSORS, [])
+        self._door_sensors: list[str] = self.data.get(Config.DOOR_SENSORS, [])
 
-        required_on_entities: list[str] = self.data.get(
-            OccupancyConfig.REQUIRED_ON_ENTITIES, []
-        )
+        required_on_entities: list[str] = self.data.get(Config.REQUIRED_ON_ENTITIES, [])
         required_off_entities: list[str] = self.data.get(
-            OccupancyConfig.REQUIRED_OFF_ENTITIES, []
+            Config.REQUIRED_OFF_ENTITIES, []
         )
         self._required: dict[str, str] = {
             **{k: STATE_ON for k in required_on_entities},

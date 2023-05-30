@@ -24,11 +24,7 @@ from .const import (
     DEFAULT_EXHAUST_RISING_THRESHOLD,
     DOMAIN,
     GRAMS_PER_CUBIC_METER,
-    CeilingFanConfig,
-    CommonConfig,
-    ExhaustFanConfig,
-    LightConfig,
-    OccupancyConfig,
+    Config,
 )
 from .util import domain_entities, on_off_entities
 
@@ -52,8 +48,8 @@ def make_controlled_entity_schema(
     return vol.Schema(
         {
             vol.Required(
-                str(CommonConfig.CONTROLLED_ENTITY),
-                default=user_input.get(CommonConfig.CONTROLLED_ENTITY, vol.UNDEFINED),
+                str(Config.CONTROLLED_ENTITY),
+                default=user_input.get(Config.CONTROLLED_ENTITY, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=entities),
             ),
@@ -134,48 +130,42 @@ def make_ceiling_fan_schema(
         {
             # temperature sensor
             vol.Required(
-                str(CeilingFanConfig.TEMP_SENSOR),
-                default=user_input.get(CeilingFanConfig.TEMP_SENSOR, vol.UNDEFINED),
+                str(Config.TEMP_SENSOR),
+                default=user_input.get(Config.TEMP_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=list(temp_sensors)),
             ),
             # humidity sensor
             vol.Required(
-                str(CeilingFanConfig.HUMIDITY_SENSOR),
-                default=user_input.get(CeilingFanConfig.HUMIDITY_SENSOR, vol.UNDEFINED),
+                str(Config.HUMIDITY_SENSOR),
+                default=user_input.get(Config.HUMIDITY_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=list(humidity_sensors)),
             ),
             # minimum SSI
             vol.Required(
-                str(CeilingFanConfig.SSI_MIN),
-                default=user_input.get(
-                    CeilingFanConfig.SSI_MIN, round(default_ssi_min, 1)
-                ),
+                str(Config.SSI_MIN),
+                default=user_input.get(Config.SSI_MIN, round(default_ssi_min, 1)),
             ): ssi_selector,
             # maximum SSI
             vol.Required(
-                str(CeilingFanConfig.SSI_MAX),
-                default=user_input.get(
-                    CeilingFanConfig.SSI_MAX, round(default_ssi_max, 1)
-                ),
+                str(Config.SSI_MAX),
+                default=user_input.get(Config.SSI_MAX, round(default_ssi_max, 1)),
             ): ssi_selector,
             # minimum fan speed
             vol.Required(
-                str(CeilingFanConfig.SPEED_MIN),
-                default=user_input.get(CeilingFanConfig.SPEED_MIN, vol.UNDEFINED),
+                str(Config.SPEED_MIN),
+                default=user_input.get(Config.SPEED_MIN, vol.UNDEFINED),
             ): speed_selector,
             # maximum fan speed
             vol.Required(
-                str(CeilingFanConfig.SPEED_MAX),
-                default=user_input.get(CeilingFanConfig.SPEED_MAX, vol.UNDEFINED),
+                str(Config.SPEED_MAX),
+                default=user_input.get(Config.SPEED_MAX, vol.UNDEFINED),
             ): speed_selector,
             # required on entities
             vol.Optional(
-                str(CeilingFanConfig.REQUIRED_ON_ENTITIES),
-                default=user_input.get(
-                    CeilingFanConfig.REQUIRED_ON_ENTITIES, vol.UNDEFINED
-                ),
+                str(Config.REQUIRED_ON_ENTITIES),
+                default=user_input.get(Config.REQUIRED_ON_ENTITIES, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(required_entities), multiple=True
@@ -183,10 +173,8 @@ def make_ceiling_fan_schema(
             ),
             # required off entities
             vol.Optional(
-                str(CeilingFanConfig.REQUIRED_OFF_ENTITIES),
-                default=user_input.get(
-                    CeilingFanConfig.REQUIRED_OFF_ENTITIES, vol.UNDEFINED
-                ),
+                str(Config.REQUIRED_OFF_ENTITIES),
+                default=user_input.get(Config.REQUIRED_OFF_ENTITIES, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(required_entities), multiple=True
@@ -194,9 +182,9 @@ def make_ceiling_fan_schema(
             ),
             # manual control minutes (optional)
             vol.Optional(
-                str(ExhaustFanConfig.MANUAL_CONTROL_MINUTES),
+                str(Config.MANUAL_CONTROL_MINUTES),
                 default=user_input.get(
-                    ExhaustFanConfig.MANUAL_CONTROL_MINUTES,
+                    Config.MANUAL_CONTROL_MINUTES,
                     vol.UNDEFINED,
                 ),
             ): vol.All(minutes_selector, vol.Coerce(int)),
@@ -248,56 +236,52 @@ def make_exhaust_fan_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.
         {
             # temperature sensor
             vol.Required(
-                str(ExhaustFanConfig.TEMP_SENSOR),
-                default=user_input.get(ExhaustFanConfig.TEMP_SENSOR, vol.UNDEFINED),
+                str(Config.TEMP_SENSOR),
+                default=user_input.get(Config.TEMP_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=list(temp_sensors)),
             ),
             # humidity sensor
             vol.Required(
-                str(ExhaustFanConfig.HUMIDITY_SENSOR),
-                default=user_input.get(ExhaustFanConfig.HUMIDITY_SENSOR, vol.UNDEFINED),
+                str(Config.HUMIDITY_SENSOR),
+                default=user_input.get(Config.HUMIDITY_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=list(humidity_sensors)),
             ),
             # reference temperature sensor
             vol.Required(
-                str(ExhaustFanConfig.REFERENCE_TEMP_SENSOR),
-                default=user_input.get(
-                    ExhaustFanConfig.REFERENCE_TEMP_SENSOR, vol.UNDEFINED
-                ),
+                str(Config.REFERENCE_TEMP_SENSOR),
+                default=user_input.get(Config.REFERENCE_TEMP_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=list(temp_sensors)),
             ),
             # reference humidity sensor
             vol.Required(
-                str(ExhaustFanConfig.REFERENCE_HUMIDITY_SENSOR),
-                default=user_input.get(
-                    ExhaustFanConfig.REFERENCE_HUMIDITY_SENSOR, vol.UNDEFINED
-                ),
+                str(Config.REFERENCE_HUMIDITY_SENSOR),
+                default=user_input.get(Config.REFERENCE_HUMIDITY_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(include_entities=list(humidity_sensors)),
             ),
             # rising threshold
             vol.Required(
-                str(ExhaustFanConfig.RISING_THRESHOLD),
+                str(Config.RISING_THRESHOLD),
                 default=user_input.get(
-                    ExhaustFanConfig.RISING_THRESHOLD, DEFAULT_EXHAUST_RISING_THRESHOLD
+                    Config.RISING_THRESHOLD, DEFAULT_EXHAUST_RISING_THRESHOLD
                 ),
             ): abs_humidity_selector,
             # falling threshold
             vol.Required(
-                str(ExhaustFanConfig.FALLING_THRESHOLD),
+                str(Config.FALLING_THRESHOLD),
                 default=user_input.get(
-                    ExhaustFanConfig.FALLING_THRESHOLD,
+                    Config.FALLING_THRESHOLD,
                     DEFAULT_EXHAUST_FALLING_THRESHOLD,
                 ),
             ): abs_humidity_selector,
             # manual control minutes
             vol.Optional(
-                str(ExhaustFanConfig.MANUAL_CONTROL_MINUTES),
+                str(Config.MANUAL_CONTROL_MINUTES),
                 default=user_input.get(
-                    ExhaustFanConfig.MANUAL_CONTROL_MINUTES,
+                    Config.MANUAL_CONTROL_MINUTES,
                     DEFAULT_EXHAUST_MANUAL_MINUTES,
                 ),
             ): vol.All(minutes_selector, vol.Coerce(int)),
@@ -338,8 +322,8 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
         {
             # required 'on' entities
             vol.Optional(
-                str(LightConfig.REQUIRED_ON_ENTITIES),
-                default=user_input.get(LightConfig.REQUIRED_ON_ENTITIES, vol.UNDEFINED),
+                str(Config.REQUIRED_ON_ENTITIES),
+                default=user_input.get(Config.REQUIRED_ON_ENTITIES, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(required_entities), multiple=True
@@ -347,10 +331,8 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
             ),
             # required 'off' entities
             vol.Optional(
-                str(LightConfig.REQUIRED_OFF_ENTITIES),
-                default=user_input.get(
-                    LightConfig.REQUIRED_OFF_ENTITIES, vol.UNDEFINED
-                ),
+                str(Config.REQUIRED_OFF_ENTITIES),
+                default=user_input.get(Config.REQUIRED_OFF_ENTITIES, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(required_entities), multiple=True
@@ -358,14 +340,14 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
             ),
             # auto off minutes
             vol.Optional(
-                str(LightConfig.AUTO_OFF_MINUTES),
-                default=user_input.get(LightConfig.AUTO_OFF_MINUTES, vol.UNDEFINED),
+                str(Config.AUTO_OFF_MINUTES),
+                default=user_input.get(Config.AUTO_OFF_MINUTES, vol.UNDEFINED),
             ): vol.All(minutes_selector, vol.Coerce(int)),
             # illuminance sensor
             vol.Inclusive(
-                str(LightConfig.ILLUMINANCE_SENSOR),
+                str(Config.ILLUMINANCE_SENSOR),
                 "illumininance",
-                default=user_input.get(LightConfig.ILLUMINANCE_SENSOR, vol.UNDEFINED),
+                default=user_input.get(Config.ILLUMINANCE_SENSOR, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(illuminance_sensors)
@@ -373,15 +355,15 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
             ),
             # illuminance threshold
             vol.Inclusive(
-                str(LightConfig.ILLUMINANCE_CUTOFF),
+                str(Config.ILLUMINANCE_CUTOFF),
                 "illumininance",
-                default=user_input.get(LightConfig.ILLUMINANCE_CUTOFF, vol.UNDEFINED),
+                default=user_input.get(Config.ILLUMINANCE_CUTOFF, vol.UNDEFINED),
             ): vol.All(illuminance_selector, vol.Coerce(int)),
             # manual control minutes
             # vol.Optional(
-            #    str(LightConfig.MANUAL_CONTROL_MINUTES),
+            #    str(Config.MANUAL_CONTROL_MINUTES),
             #    default=user_input.get(
-            #        LightConfig.MANUAL_CONTROL_MINUTES, vol.UNDEFINED
+            #        Config.MANUAL_CONTROL_MINUTES, vol.UNDEFINED
             #    ),
             # ): vol.All(minutes_selector, vol.Coerce(int)),
         }
@@ -425,13 +407,13 @@ def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Sc
         {
             # name
             vol.Required(
-                str(OccupancyConfig.SENSOR_NAME),
-                default=user_input.get(OccupancyConfig.SENSOR_NAME, vol.UNDEFINED),
+                str(Config.SENSOR_NAME),
+                default=user_input.get(Config.SENSOR_NAME, vol.UNDEFINED),
             ): str,
             # motion sensors
             vol.Optional(
-                str(OccupancyConfig.MOTION_SENSORS),
-                default=user_input.get(OccupancyConfig.MOTION_SENSORS, vol.UNDEFINED),
+                str(Config.MOTION_SENSORS),
+                default=user_input.get(Config.MOTION_SENSORS, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(motion_sensors), multiple=True
@@ -439,13 +421,13 @@ def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Sc
             ),
             # motion-off minutes
             vol.Optional(
-                str(OccupancyConfig.OFF_MINUTES),
-                default=user_input.get(OccupancyConfig.OFF_MINUTES, vol.UNDEFINED),
+                str(Config.MOTION_OFF_MINUTES),
+                default=user_input.get(Config.MOTION_OFF_MINUTES, vol.UNDEFINED),
             ): vol.All(minutes_selector, vol.Coerce(int)),
             # other entities
             vol.Optional(
-                str(OccupancyConfig.OTHER_ENTITIES),
-                default=user_input.get(OccupancyConfig.OTHER_ENTITIES, vol.UNDEFINED),
+                str(Config.OTHER_ENTITIES),
+                default=user_input.get(Config.OTHER_ENTITIES, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(conditional_entities), multiple=True
@@ -453,8 +435,8 @@ def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Sc
             ),
             # door sensors
             vol.Optional(
-                str(OccupancyConfig.DOOR_SENSORS),
-                default=user_input.get(OccupancyConfig.DOOR_SENSORS, vol.UNDEFINED),
+                str(Config.DOOR_SENSORS),
+                default=user_input.get(Config.DOOR_SENSORS, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(door_sensors), multiple=True
@@ -462,10 +444,8 @@ def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Sc
             ),
             # required on entities
             vol.Optional(
-                str(OccupancyConfig.REQUIRED_ON_ENTITIES),
-                default=user_input.get(
-                    OccupancyConfig.REQUIRED_ON_ENTITIES, vol.UNDEFINED
-                ),
+                str(Config.REQUIRED_ON_ENTITIES),
+                default=user_input.get(Config.REQUIRED_ON_ENTITIES, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(conditional_entities), multiple=True
@@ -473,10 +453,8 @@ def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Sc
             ),
             # required off entities
             vol.Optional(
-                str(OccupancyConfig.REQUIRED_OFF_ENTITIES),
-                default=user_input.get(
-                    OccupancyConfig.REQUIRED_OFF_ENTITIES, vol.UNDEFINED
-                ),
+                str(Config.REQUIRED_OFF_ENTITIES),
+                default=user_input.get(Config.REQUIRED_OFF_ENTITIES, vol.UNDEFINED),
             ): selector.EntitySelector(
                 selector.EntitySelectorConfig(
                     include_entities=list(conditional_entities), multiple=True
@@ -491,6 +469,6 @@ def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Sc
 
 def _existing_controlled_entities(hass: HomeAssistant):
     return [
-        entry.data.get(CommonConfig.CONTROLLED_ENTITY)
+        entry.data.get(Config.CONTROLLED_ENTITY)
         for entry in hass.config_entries.async_entries(DOMAIN)
     ]

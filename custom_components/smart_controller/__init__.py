@@ -10,13 +10,13 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STARTED, Platform
 from homeassistant.core import CoreState, Event, HomeAssistant
 
 from .ceiling_fan_controller import CeilingFanController
-from .const import DOMAIN, CommonConfig, ControllerType
+from .const import _LOGGER, DOMAIN, Config, ControllerType
 from .exhaust_fan_controller import ExhaustFanController
 from .light_controller import LightController
 from .occupancy_controller import OccupancyController
 from .smart_controller import SmartController
 
-PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.BINARY_SENSOR]
 
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
@@ -60,11 +60,14 @@ async def async_reload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     await async_setup_entry(hass, config_entry)
 
 
+# #### Internal functions ####
+
+
 def _create_controller(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> SmartController | None:
-    controller_type = config_entry.data[CommonConfig.TYPE]
-    match controller_type:
+    type_ = config_entry.data[Config.CONTROLLER_TYPE]
+    match type_:
         case ControllerType.CEILING_FAN:
             return CeilingFanController(hass, config_entry)
 
@@ -77,4 +80,4 @@ def _create_controller(
         case ControllerType.OCCUPANCY:
             return OccupancyController(hass, config_entry)
 
-    raise TypeError(f"Invalid controller type: {controller_type}")
+    raise TypeError(f"Invalid controller type: {type_}")

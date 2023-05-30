@@ -14,7 +14,7 @@ from homeassistant.helpers.event import (
 )
 from homeassistant.util import dt
 
-from .const import _LOGGER, IGNORE_STATES, CommonConfig
+from .const import _LOGGER, IGNORE_STATES, Config
 
 
 class MyContext(Context):
@@ -40,9 +40,7 @@ class SmartController:
         self.config_entry = config_entry
         self._state = initial_state
         self.data: Mapping[str, Any] = config_entry.data | config_entry.options
-        self.controlled_entity: str | None = self.data.get(
-            CommonConfig.CONTROLLED_ENTITY
-        )
+        self.controlled_entity: str | None = self.data.get(Config.CONTROLLED_ENTITY)
         self._is_on_states = is_on_states or DEFAULT_ON_STATES
         self.name: str | None = None
         self.tracked_entity_ids: list[str] = []
@@ -115,13 +113,13 @@ class SmartController:
     def set_timer(self, period: timedelta | None) -> None:
         """Start a timer or cancel a timer if time period is 'None'."""
 
-        async def dispatch_timer_expiration() -> None:
+        async def dispatch_timer() -> None:
             await self.on_timer_expired()
             await self._fire_events()
 
         def timer_expired(_: datetime) -> None:
             self._timer_unsub = None
-            self.hass.add_job(dispatch_timer_expiration)
+            self.hass.add_job(dispatch_timer)
 
         if self._timer_unsub is not None:
             self._unsubscribers.remove(self._timer_unsub)

@@ -14,7 +14,7 @@ from homeassistant.const import PERCENTAGE, STATE_OFF, STATE_ON, Platform
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers.event import async_track_time_interval
 
-from .const import _LOGGER, ON_OFF_STATES, CeilingFanConfig
+from .const import _LOGGER, ON_OFF_STATES, Config
 from .smart_controller import SmartController
 from .util import extrapolate_value, float_with_unit, remove_empty, summer_simmer_index
 
@@ -45,31 +45,29 @@ class CeilingFanController(SmartController):
         """Initialize the controller."""
         super().__init__(hass, config_entry, MyState.INIT)
 
-        self.temp_sensor: str = self.data[CeilingFanConfig.TEMP_SENSOR]
-        self.humidity_sensor: str = self.data[CeilingFanConfig.HUMIDITY_SENSOR]
+        self.temp_sensor: str = self.data[Config.TEMP_SENSOR]
+        self.humidity_sensor: str = self.data[Config.HUMIDITY_SENSOR]
 
         self.ssi_range = (
-            float(self.data[CeilingFanConfig.SSI_MIN]),
-            float(self.data[CeilingFanConfig.SSI_MAX]),
+            float(self.data[Config.SSI_MIN]),
+            float(self.data[Config.SSI_MAX]),
         )
 
         self.speed_range = (
-            float(self.data[CeilingFanConfig.SPEED_MIN]),
-            float(self.data[CeilingFanConfig.SPEED_MAX]),
+            float(self.data[Config.SPEED_MIN]),
+            float(self.data[Config.SPEED_MAX]),
         )
 
-        manual_control_minutes = self.data.get(CeilingFanConfig.MANUAL_CONTROL_MINUTES)
+        manual_control_minutes = self.data.get(Config.MANUAL_CONTROL_MINUTES)
         self._manual_control_period = (
             timedelta(minutes=manual_control_minutes)
             if manual_control_minutes
             else None
         )
 
-        required_on_entities: list[str] = self.data.get(
-            CeilingFanConfig.REQUIRED_ON_ENTITIES, []
-        )
+        required_on_entities: list[str] = self.data.get(Config.REQUIRED_ON_ENTITIES, [])
         required_off_entities: list[str] = self.data.get(
-            CeilingFanConfig.REQUIRED_OFF_ENTITIES, []
+            Config.REQUIRED_OFF_ENTITIES, []
         )
         self._required = {
             **{k: STATE_ON for k in required_on_entities},

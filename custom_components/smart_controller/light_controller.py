@@ -16,7 +16,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, State
 
-from .const import _LOGGER, ON_OFF_STATES, LightConfig
+from .const import _LOGGER, ON_OFF_STATES, Config
 from .smart_controller import SmartController
 from .util import remove_empty
 
@@ -47,27 +47,21 @@ class LightController(SmartController):
         """Initialize the Light Controller."""
         super().__init__(hass, config_entry, MyState.INIT)
 
-        self.illuminance_sensor: str | None = self.data.get(
-            LightConfig.ILLUMINANCE_SENSOR
-        )
-        self.illuminance_cutoff: int | None = self.data.get(
-            LightConfig.ILLUMINANCE_CUTOFF
-        )
+        self.illuminance_sensor: str | None = self.data.get(Config.ILLUMINANCE_SENSOR)
+        self.illuminance_cutoff: int | None = self.data.get(Config.ILLUMINANCE_CUTOFF)
 
-        auto_off_minutes: int | None = self.data.get(LightConfig.AUTO_OFF_MINUTES)
+        auto_off_minutes: int | None = self.data.get(Config.AUTO_OFF_MINUTES)
         # manual_control_minutes: int | None = self.data.get(
-        #    LightConfig.MANUAL_CONTROL_MINUTES
+        #    Config.MANUAL_CONTROL_MINUTES
         # )
 
         self._auto_off_period = (
             timedelta(minutes=auto_off_minutes) if auto_off_minutes else None
         )
 
-        required_on_entities: list[str] = self.data.get(
-            LightConfig.REQUIRED_ON_ENTITIES, []
-        )
+        required_on_entities: list[str] = self.data.get(Config.REQUIRED_ON_ENTITIES, [])
         required_off_entities: list[str] = self.data.get(
-            LightConfig.REQUIRED_OFF_ENTITIES, []
+            Config.REQUIRED_OFF_ENTITIES, []
         )
         self._required = {
             **{k: STATE_ON for k in required_on_entities},

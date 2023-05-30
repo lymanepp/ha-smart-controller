@@ -32,60 +32,29 @@ class ControllerType(StrEnum):
     OCCUPANCY = "occupancy"
 
 
-class CommonConfig(StrEnum):
-    """Config common to all controllers."""
+class Config(StrEnum):
+    """Configuration values."""
 
-    TYPE = "type"
-    CONTROLLED_ENTITY = "controlled_entity"
-
-
-class CeilingFanConfig(StrEnum):
-    """Ceiling fan configuration."""
-
-    CONTROLLED_ENTITY = "controlled_entity"
-    TEMP_SENSOR = "temp_sensor"
-    HUMIDITY_SENSOR = "humidity_sensor"
-    SSI_MIN = "ssi_min"
-    SSI_MAX = "ssi_max"
-    SPEED_MIN = "speed_min"
-    SPEED_MAX = "speed_max"
-    REQUIRED_ON_ENTITIES = "required_on_entities"
-    REQUIRED_OFF_ENTITIES = "required_off_entities"
-    MANUAL_CONTROL_MINUTES = "manual_control_minutes"
-
-
-class ExhaustFanConfig(StrEnum):
-    """Exhaust fan configuration."""
-
-    CONTROLLED_ENTITY = "controlled_entity"
-    TEMP_SENSOR = "temp_sensor"
-    HUMIDITY_SENSOR = "humidity_sensor"
-    REFERENCE_TEMP_SENSOR = "reference_temp_sensor"
-    REFERENCE_HUMIDITY_SENSOR = "reference_humidity_sensor"
-    RISING_THRESHOLD = "rising_threshold"
-    FALLING_THRESHOLD = "falling_threshold"
-    MANUAL_CONTROL_MINUTES = "manual_control_minutes"
-
-
-class LightConfig(StrEnum):
-    """Light configuration."""
-
-    CONTROLLED_ENTITY = "controlled_entity"
     AUTO_OFF_MINUTES = "auto_off_minutes"
-    ILLUMINANCE_SENSOR = "illuminance_sensor"
-    ILLUMINANCE_CUTOFF = "illuminance_cutoff"
-    REQUIRED_ON_ENTITIES = "required_on_entities"
-    REQUIRED_OFF_ENTITIES = "required_off_entities"
-    # MANUAL_CONTROL_MINUTES = "manual_control_minutes"
-
-
-class OccupancyConfig(StrEnum):
-    """Occupancy configuration."""
-
-    SENSOR_NAME = "sensor_name"
-    MOTION_SENSORS = "motion_sensors"
-    OFF_MINUTES = "motion_off_minutes"
+    CONTROLLED_ENTITY = "controlled_entity"
+    CONTROLLER_TYPE = "type"
     DOOR_SENSORS = "door_sensors"
+    FALLING_THRESHOLD = "falling_threshold"
+    HUMIDITY_SENSOR = "humidity_sensor"
+    ILLUMINANCE_CUTOFF = "illuminance_cutoff"
+    ILLUMINANCE_SENSOR = "illuminance_sensor"
+    MANUAL_CONTROL_MINUTES = "manual_control_minutes"
+    MOTION_SENSORS = "motion_sensors"
+    MOTION_OFF_MINUTES = "motion_off_minutes"
     OTHER_ENTITIES = "other_entities"
-    REQUIRED_ON_ENTITIES = "required_on_entities"
+    REFERENCE_HUMIDITY_SENSOR = "reference_humidity_sensor"
+    REFERENCE_TEMP_SENSOR = "reference_temp_sensor"
     REQUIRED_OFF_ENTITIES = "required_off_entities"
+    REQUIRED_ON_ENTITIES = "required_on_entities"
+    RISING_THRESHOLD = "rising_threshold"
+    SENSOR_NAME = "sensor_name"
+    SPEED_MAX = "speed_max"
+    SPEED_MIN = "speed_min"
+    SSI_MAX = "ssi_max"
+    SSI_MIN = "ssi_min"
+    TEMP_SENSOR = "temp_sensor"

@@ -19,7 +19,7 @@ from .config_flow_schema import (
     make_light_schema,
     make_occupancy_schema,
 )
-from .const import DOMAIN, CommonConfig, ControllerType, LightConfig, OccupancyConfig
+from .const import DOMAIN, Config, ControllerType
 from .util import domain_entities
 
 ErrorsType = MutableMapping[str, str]
@@ -60,7 +60,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: ErrorsType = {}
 
         if user_input is not None:
-            self._controlled_entity = user_input[CommonConfig.CONTROLLED_ENTITY]
+            self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
             state = self.hass.states.get(self._controlled_entity)
             assert state
@@ -96,8 +96,8 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             assert state
 
             data = {
-                CommonConfig.TYPE: ControllerType.CEILING_FAN,
-                CommonConfig.CONTROLLED_ENTITY: self._controlled_entity,
+                Config.CONTROLLER_TYPE: ControllerType.CEILING_FAN,
+                Config.CONTROLLED_ENTITY: self._controlled_entity,
                 **user_input,
             }
 
@@ -120,7 +120,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: ErrorsType = {}
 
         if user_input is not None:
-            self._controlled_entity = user_input[CommonConfig.CONTROLLED_ENTITY]
+            self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
             state = self.hass.states.get(self._controlled_entity)
             assert state
@@ -154,8 +154,8 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             assert state
 
             data = {
-                CommonConfig.TYPE: ControllerType.EXHAUST_FAN,
-                CommonConfig.CONTROLLED_ENTITY: self._controlled_entity,
+                Config.CONTROLLER_TYPE: ControllerType.EXHAUST_FAN,
+                Config.CONTROLLED_ENTITY: self._controlled_entity,
                 **user_input,
             }
 
@@ -176,7 +176,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: ErrorsType = {}
 
         if user_input is not None:
-            self._controlled_entity = user_input[CommonConfig.CONTROLLED_ENTITY]
+            self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
             state = self.hass.states.get(self._controlled_entity)
             assert state
@@ -210,8 +210,8 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             assert state
 
             data = {
-                CommonConfig.TYPE: ControllerType.LIGHT,
-                CommonConfig.CONTROLLED_ENTITY: self._controlled_entity,
+                Config.CONTROLLER_TYPE: ControllerType.LIGHT,
+                Config.CONTROLLED_ENTITY: self._controlled_entity,
                 **user_input,
             }
 
@@ -232,7 +232,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: ErrorsType = {}
 
         if user_input is not None and _validate_occupancy(user_input, errors):
-            sensor_name = user_input[OccupancyConfig.SENSOR_NAME]
+            sensor_name = user_input[Config.SENSOR_NAME]
             unique_id = f"{DOMAIN}__{ControllerType.OCCUPANCY}__" + slugify(sensor_name)
 
             if await self.async_set_unique_id(unique_id):
@@ -241,7 +241,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
 
                 data = {
-                    CommonConfig.TYPE: ControllerType.OCCUPANCY,
+                    Config.CONTROLLER_TYPE: ControllerType.OCCUPANCY,
                     **user_input,
                 }
 
@@ -266,8 +266,8 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
     def __init__(self, config_entry: ConfigEntry):
         """Initialize options flow."""
         data = config_entry.data | config_entry.options
-        self._controller_type = data.pop(CommonConfig.TYPE)
-        self._controlled_entity = data.pop(CommonConfig.CONTROLLED_ENTITY, None)
+        self._controller_type = data.pop(Config.CONTROLLER_TYPE)
+        self._controlled_entity = data.pop(Config.CONTROLLED_ENTITY, None)
         self.original_data = data
         self._placeholders: dict[str, str] = {}
 
@@ -364,7 +364,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         errors: ErrorsType = {}
 
         if user_input is not None and _validate_occupancy(user_input, errors):
-            sensor_name = user_input[OccupancyConfig.SENSOR_NAME]
+            sensor_name = user_input[Config.SENSOR_NAME]
             return self.async_create_entry(title=sensor_name, data=user_input)
 
         schema_data = user_input or self.original_data
@@ -382,9 +382,9 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 def _validate_light(
     hass: HomeAssistant, user_input: ConfigType, errors: ErrorsType
 ) -> bool:
-    auto_off_minutes = user_input.get(LightConfig.AUTO_OFF_MINUTES)
+    auto_off_minutes = user_input.get(Config.AUTO_OFF_MINUTES)
     if auto_off_minutes:
-        required_on = user_input.get(LightConfig.REQUIRED_ON_ENTITIES, [])
+        required_on = user_input.get(Config.REQUIRED_ON_ENTITIES, [])
         occupancy_sensors = domain_entities(
             hass,
             [Platform.BINARY_SENSOR],
@@ -400,10 +400,10 @@ def _validate_light(
 
 
 def _validate_occupancy(user_input: ConfigType, errors: ErrorsType) -> bool:
-    motion_sensors = user_input.get(OccupancyConfig.MOTION_SENSORS)
-    off_minutes = user_input.get(OccupancyConfig.OFF_MINUTES)
-    door_sensors = user_input.get(OccupancyConfig.DOOR_SENSORS)
-    other_entities = user_input.get(OccupancyConfig.OTHER_ENTITIES)
+    motion_sensors = user_input.get(Config.MOTION_SENSORS)
+    off_minutes = user_input.get(Config.MOTION_OFF_MINUTES)
+    door_sensors = user_input.get(Config.DOOR_SENSORS)
+    other_entities = user_input.get(Config.OTHER_ENTITIES)
 
     if not motion_sensors and not other_entities:
         errors["base"] = "occupancy_needs_trigger"

@@ -15,7 +15,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, State
 
-from .const import _LOGGER, ON_OFF_STATES, ExhaustFanConfig
+from .const import _LOGGER, ON_OFF_STATES, Config
 from .smart_controller import SmartController
 from .util import absolute_humidity, float_with_unit, remove_empty
 
@@ -46,17 +46,15 @@ class ExhaustFanController(SmartController):
         """Initialize the controller."""
         super().__init__(hass, config_entry, MyState.INIT)
 
-        self.temp_sensor: str = self.data[ExhaustFanConfig.TEMP_SENSOR]
-        self.humidity_sensor: str = self.data[ExhaustFanConfig.HUMIDITY_SENSOR]
-        self.ref_temp_sensor: str = self.data[ExhaustFanConfig.REFERENCE_TEMP_SENSOR]
-        self.ref_humidity_sensor: str = self.data[
-            ExhaustFanConfig.REFERENCE_HUMIDITY_SENSOR
-        ]
+        self.temp_sensor: str = self.data[Config.TEMP_SENSOR]
+        self.humidity_sensor: str = self.data[Config.HUMIDITY_SENSOR]
+        self.ref_temp_sensor: str = self.data[Config.REFERENCE_TEMP_SENSOR]
+        self.ref_humidity_sensor: str = self.data[Config.REFERENCE_HUMIDITY_SENSOR]
 
-        self.falling_threshold: float = self.data[ExhaustFanConfig.FALLING_THRESHOLD]
-        self.rising_threshold: float = self.data[ExhaustFanConfig.RISING_THRESHOLD]
+        self.falling_threshold: float = self.data[Config.FALLING_THRESHOLD]
+        self.rising_threshold: float = self.data[Config.RISING_THRESHOLD]
 
-        manual_control_minutes = self.data.get(ExhaustFanConfig.MANUAL_CONTROL_MINUTES)
+        manual_control_minutes = self.data.get(Config.MANUAL_CONTROL_MINUTES)
         self._manual_control_period = (
             timedelta(minutes=manual_control_minutes)
             if manual_control_minutes

@@ -42,9 +42,7 @@ class OccupancyController(SmartController):
 
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the Occupancy Controller."""
-        super().__init__(
-            hass, config_entry, initial_state=MyState.UNOCCUPIED, is_on_states=ON_STATES
-        )
+        super().__init__(hass, config_entry, initial_state=MyState.UNOCCUPIED)
 
         self.name = config_entry.title
         self._motion_sensors: list[str] = self.data.get(Config.MOTION_SENSORS, [])
@@ -76,6 +74,11 @@ class OccupancyController(SmartController):
                 *self._required,
             ]
         )
+
+    @property
+    def is_on(self):
+        """Return the status of the sensor."""
+        return self._state in ON_STATES
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""

@@ -1,9 +1,10 @@
 """Base class for controllers."""
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 from datetime import datetime, timedelta
-from typing import Any, Final
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, STATE_ON
@@ -21,10 +22,7 @@ class MyContext(Context):
     """Makes it possible to identify state changes triggered by our service calls."""
 
 
-DEFAULT_ON_STATES: Final = [STATE_ON]
-
-
-class SmartController:
+class SmartController(ABC):
     """Base class for controllers."""
 
     def __init__(
@@ -32,7 +30,6 @@ class SmartController:
         hass: HomeAssistant,
         config_entry: ConfigEntry,
         initial_state: str,
-        is_on_states: list[str] | None = None,
     ) -> None:
         """Initialize the controller base."""
 
@@ -41,7 +38,6 @@ class SmartController:
         self._state = initial_state
         self.data: Mapping[str, Any] = config_entry.data | config_entry.options
         self.controlled_entity: str | None = self.data.get(Config.CONTROLLED_ENTITY)
-        self._is_on_states = is_on_states or DEFAULT_ON_STATES
         self.name: str | None = None
         self.tracked_entity_ids: list[str] = []
         self._timer_unsub: CALLBACK_TYPE | None = None
@@ -103,7 +99,7 @@ class SmartController:
     @property
     def is_on(self):
         """Return the status of the sensor."""
-        return self._state in self._is_on_states
+        return self._state == STATE_ON
 
     def set_timer(self, period: timedelta | None) -> None:
         """Start a timer or cancel a timer if time period is 'None'."""
@@ -154,17 +150,17 @@ class SmartController:
         )
         await self.on_event(event)
 
+    @abstractmethod
     async def on_state_change(self, state: State) -> None:
         """Handle tracked entity state changes."""
-        raise NotImplementedError("Must implement 'on_state_change' method.")
 
+    @abstractmethod
     async def on_timer_expired(self) -> None:
         """Handle timer expiration."""
-        raise NotImplementedError("Must implement 'on_timer_expired' method.")
 
+    @abstractmethod
     async def on_event(self, event: Any) -> None:
         """Handle controller events."""
-        raise NotImplementedError("Must implement 'on_event' method.")
 
     async def async_service_call(
         self,

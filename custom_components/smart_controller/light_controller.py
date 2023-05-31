@@ -51,9 +51,9 @@ class LightController(SmartController):
         self.illuminance_cutoff: int | None = self.data.get(Config.ILLUMINANCE_CUTOFF)
 
         auto_off_minutes: int | None = self.data.get(Config.AUTO_OFF_MINUTES)
-        # manual_control_minutes: int | None = self.data.get(
-        #    Config.MANUAL_CONTROL_MINUTES
-        # )
+        manual_control_minutes: int | None = self.data.get(
+            Config.MANUAL_CONTROL_MINUTES
+        )
 
         self._auto_off_period = (
             timedelta(minutes=auto_off_minutes) if auto_off_minutes else None
@@ -68,11 +68,11 @@ class LightController(SmartController):
             **{k: STATE_OFF for k in required_off_entities},
         }
 
-        # self._manual_control_period = (
-        #    timedelta(minutes=manual_control_minutes)
-        #    if manual_control_minutes
-        #    else None
-        # )
+        self._manual_control_period = (
+            timedelta(minutes=manual_control_minutes)
+            if manual_control_minutes
+            else None
+        )
 
         self._occupancy_mode = False
 
@@ -163,7 +163,7 @@ class LightController(SmartController):
 
             case (MyState.ON, MyEvent.OFF):
                 self.set_state(MyState.OFF_MANUAL)
-                self.set_timer(None)
+                self.set_timer(self._manual_control_period)
 
             case (MyState.ON, MyEvent.REFRESH):
                 if not have_required():
@@ -185,6 +185,9 @@ class LightController(SmartController):
             case (MyState.OFF_MANUAL, MyEvent.REFRESH):
                 if not have_required():
                     self.set_state(MyState.OFF)
+
+            case (MyState.OFF_MANUAL, MyEvent.TIMER):
+                self.set_state(MyState.OFF)
 
             case (MyState.ON_MANUAL, MyEvent.OFF):
                 if have_required():

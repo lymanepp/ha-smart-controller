@@ -360,12 +360,10 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
                 default=user_input.get(Config.ILLUMINANCE_CUTOFF, vol.UNDEFINED),
             ): vol.All(illuminance_selector, vol.Coerce(int)),
             # manual control minutes
-            # vol.Optional(
-            #    str(Config.MANUAL_CONTROL_MINUTES),
-            #    default=user_input.get(
-            #        Config.MANUAL_CONTROL_MINUTES, vol.UNDEFINED
-            #    ),
-            # ): vol.All(minutes_selector, vol.Coerce(int)),
+            vol.Optional(
+                str(Config.MANUAL_CONTROL_MINUTES),
+                default=user_input.get(Config.MANUAL_CONTROL_MINUTES, vol.UNDEFINED),
+            ): vol.All(minutes_selector, vol.Coerce(int)),
         }
     )
 

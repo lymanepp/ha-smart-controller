@@ -68,7 +68,7 @@
                     "auto_off_minutes": "Automatic off (optional):",
                     "illuminance_sensor": "Illuminance sensor (optional):",
                     "illuminance_cutoff": "Illuminance cutoff (optional):",
-                    "manual_control_minutes": "Manual control (optional):"
+                    "manual_control_minutes": "Manual off time (optional):"
                 }
             },
             "occupancy": {
@@ -136,7 +136,7 @@
                     "auto_off_minutes": "Automatic off (optional):",
                     "illuminance_sensor": "Illuminance sensor (optional):",
                     "illuminance_cutoff": "Illuminance cutoff (optional):",
-                    "manual_control_minutes": "Manual control (optional):"
+                    "manual_control_minutes": "Manual off time (optional):"
                 }
             },
             "occupancy": {

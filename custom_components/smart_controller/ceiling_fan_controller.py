@@ -93,12 +93,14 @@ class CeilingFanController(SmartController):
         self._unsubscribers.append(
             async_track_time_interval(hass, self._on_poll, timedelta(seconds=60))
         )
-        self.fire_event(MyEvent.REFRESH)
+        await self.fire_event(MyEvent.REFRESH)
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
         if state.entity_id == self.controlled_entity and state.state in ON_OFF_STATES:
-            self.fire_event(MyEvent.ON if state.state == STATE_ON else MyEvent.OFF)
+            await self.fire_event(
+                MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
+            )
 
         elif state.entity_id == self.temp_sensor:
             self._temp = float_with_unit(state, self.hass.config.units.temperature_unit)
@@ -109,15 +111,15 @@ class CeilingFanController(SmartController):
         elif state.entity_id in self._required_states:
             if state.state in ON_OFF_STATES:
                 self._required_states[state.entity_id] = state.state
-                self.fire_event(MyEvent.REFRESH)
+                await self.fire_event(MyEvent.REFRESH)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
-        self.fire_event(MyEvent.TIMER)
+        await self.fire_event(MyEvent.TIMER)
 
     async def _on_poll(self, _: datetime) -> None:
         _LOGGER.debug("%s; state=%s; polling for changes", self.name, self._state)
-        self.fire_event(MyEvent.REFRESH)
+        await self.fire_event(MyEvent.REFRESH)
 
     async def on_event(self, event: MyEvent) -> None:
         """Handle controller events."""

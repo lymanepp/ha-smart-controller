@@ -81,23 +81,23 @@ class OccupancyController(SmartController):
         """Handle entity state changes from base."""
         if state.entity_id in self._motion_sensors:
             if state.state == STATE_ON:
-                self.fire_event(MyEvent.MOTION)
+                await self.fire_event(MyEvent.MOTION)
 
         elif state.entity_id in self._other_entities:
             if state.state in ON_OFF_STATES:
-                self.fire_event(MyEvent.UPDATE)
+                await self.fire_event(MyEvent.UPDATE)
 
         elif state.entity_id in self._door_sensors:
             if state.state in STATE_ON:
-                self.fire_event(MyEvent.DOOR_OPEN)
+                await self.fire_event(MyEvent.DOOR_OPEN)
 
         elif state.entity_id in self._required:
             if state.state in ON_OFF_STATES:
-                self.fire_event(MyEvent.UPDATE)
+                await self.fire_event(MyEvent.UPDATE)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
-        self.fire_event(MyEvent.TIMER)
+        await self.fire_event(MyEvent.TIMER)
 
     async def on_event(self, event: MyEvent) -> None:
         """Handle controller events."""

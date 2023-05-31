@@ -79,37 +79,39 @@ class ExhaustFanController(SmartController):
     async def async_setup(self, hass) -> None:
         """Additional setup unique to this controller."""
         await super().async_setup(hass)
-        self.fire_event(MyEvent.REFRESH)
+        await self.fire_event(MyEvent.REFRESH)
 
     async def on_state_change(self, state: State) -> None:
         """Handle entity state changes from base."""
         match state.entity_id:
             case self.controlled_entity if state.state in ON_OFF_STATES:
-                self.fire_event(MyEvent.ON if state.state == STATE_ON else MyEvent.OFF)
+                await self.fire_event(
+                    MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
+                )
 
             case self.temp_sensor:
                 self._temp = float_with_unit(
                     state, self.hass.config.units.temperature_unit
                 )
-                self.fire_event(MyEvent.REFRESH)
+                await self.fire_event(MyEvent.REFRESH)
 
             case self.humidity_sensor:
                 self._humidity = float_with_unit(state, PERCENTAGE)
-                self.fire_event(MyEvent.REFRESH)
+                await self.fire_event(MyEvent.REFRESH)
 
             case self.ref_temp_sensor:
                 self._ref_temp = float_with_unit(
                     state, self.hass.config.units.temperature_unit
                 )
-                self.fire_event(MyEvent.REFRESH)
+                await self.fire_event(MyEvent.REFRESH)
 
             case self.ref_humidity_sensor:
                 self._ref_humidity = float_with_unit(state, PERCENTAGE)
-                self.fire_event(MyEvent.REFRESH)
+                await self.fire_event(MyEvent.REFRESH)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
-        self.fire_event(MyEvent.TIMER)
+        await self.fire_event(MyEvent.TIMER)
 
     async def on_event(self, event: MyEvent) -> None:
         """Handle controller events."""

@@ -102,19 +102,21 @@ class LightController(SmartController):
         """Handle entity state changes from base."""
         if state.entity_id == self.controlled_entity:
             if state.state in ON_OFF_STATES:
-                self.fire_event(MyEvent.ON if state.state == STATE_ON else MyEvent.OFF)
+                await self.fire_event(
+                    MyEvent.ON if state.state == STATE_ON else MyEvent.OFF
+                )
 
         elif state.entity_id == self.illuminance_sensor:
             if state.state is not None:
-                self.fire_event(MyEvent.REFRESH)
+                await self.fire_event(MyEvent.REFRESH)
 
         elif state.entity_id in self._required:
             if state.state in ON_OFF_STATES:
-                self.fire_event(MyEvent.REFRESH)
+                await self.fire_event(MyEvent.REFRESH)
 
     async def on_timer_expired(self) -> None:
         """Handle timer expiration from base."""
-        self.fire_event(MyEvent.TIMER)
+        await self.fire_event(MyEvent.TIMER)
 
     async def on_event(self, event: MyEvent) -> None:
         """Handle controller events."""

@@ -86,11 +86,6 @@ class SmartController(ABC):
 
         return remove_listener
 
-    def async_update_listeners(self) -> None:
-        """Update all registered listeners."""
-        for update_callback in self._listeners:
-            update_callback()
-
     @property
     def state(self) -> str:
         """Return the state."""
@@ -138,17 +133,7 @@ class SmartController(ABC):
             new_state,
         )
         self._state = new_state
-        self.async_update_listeners()
-
-    async def fire_event(self, event: Any) -> None:
-        """Fire an event to the controller."""
-        _LOGGER.debug(
-            "%s; state=%s; processing '%s' event",
-            self.name,
-            self._state,
-            event,
-        )
-        await self.on_event(event)
+        self._update_listeners()
 
     @abstractmethod
     async def on_state_change(self, state: State) -> None:
@@ -161,6 +146,16 @@ class SmartController(ABC):
     @abstractmethod
     async def on_event(self, event: Any) -> None:
         """Handle controller events."""
+
+    async def fire_event(self, event: Any) -> None:
+        """Fire an event to the controller."""
+        _LOGGER.debug(
+            "%s; state=%s; processing '%s' event",
+            self.name,
+            self._state,
+            event,
+        )
+        await self.on_event(event)
 
     async def async_service_call(
         self,
@@ -187,6 +182,11 @@ class SmartController(ABC):
         )
 
     # #### Internal methods ####
+
+    def _update_listeners(self) -> None:
+        """Update all registered listeners."""
+        for update_callback in self._listeners:
+            update_callback()
 
     async def _on_state_change(self, old_state: State | None, new_state: State) -> None:
         if (

@@ -55,9 +55,6 @@ class LightController(SmartController):
             Config.REQUIRED_OFF_ENTITIES, []
         )
         auto_off_minutes: int | None = self.data.get(Config.AUTO_OFF_MINUTES)
-        manual_control_minutes: int | None = self.data.get(
-            Config.MANUAL_CONTROL_MINUTES
-        )
 
         self._auto_off_period = (
             timedelta(minutes=auto_off_minutes) if auto_off_minutes else None
@@ -67,12 +64,6 @@ class LightController(SmartController):
             **{k: STATE_ON for k in required_on_entities},
             **{k: STATE_OFF for k in required_off_entities},
         }
-
-        self._manual_control_period = (
-            timedelta(minutes=manual_control_minutes)
-            if manual_control_minutes
-            else None
-        )
 
         self.tracked_entity_ids = remove_empty(
             [
@@ -128,19 +119,12 @@ class LightController(SmartController):
             case (MyState.INIT, MyEvent.OFF):
                 self.set_state(MyState.OFF)
 
-            case (MyState.INIT, MyEvent.ON):
-                if (
-                    self.trigger_entity
-                    and self.get_entity_state(self.trigger_entity) == STATE_ON
-                ):
+            case (MyState.INIT, MyEvent.ON) | (MyState.OFF, MyEvent.ON):
+                if self.is_entity_state(self.trigger_entity, STATE_ON):
                     self.set_state(MyState.ON)
                 else:
                     self.set_state(MyState.ON_MANUAL)
                     self.set_timer(self._auto_off_period)
-
-            case (MyState.OFF, MyEvent.ON):
-                self.set_state(MyState.ON_MANUAL)
-                self.set_timer(self._auto_off_period)
 
             case (MyState.OFF, MyEvent.TRIGGER_ON):
                 if acceptable_illuminance() and have_required():
@@ -148,10 +132,11 @@ class LightController(SmartController):
                     await set_light_mode(STATE_ON)
 
             case (MyState.ON, MyEvent.OFF):
-                self.set_state(
-                    MyState.OFF_MANUAL if self.trigger_entity else MyState.OFF
-                )
-                self.set_timer(None)
+                if self.is_entity_state(self.trigger_entity, STATE_OFF):
+                    self.set_state(MyState.OFF)
+                else:
+                    self.set_state(MyState.OFF_MANUAL)
+                    self.set_timer(None)
 
             case (MyState.ON, MyEvent.TRIGGER_OFF):
                 self.set_state(MyState.OFF)
@@ -170,9 +155,11 @@ class LightController(SmartController):
 
             case (MyState.ON_MANUAL, MyEvent.OFF):
                 self.set_state(MyState.OFF)
+                self.set_timer(None)
 
             case (MyState.ON_MANUAL, MyEvent.TRIGGER_ON):
                 self.set_state(MyState.ON)
+                self.set_timer(None)
 
             case (MyState.ON_MANUAL, MyEvent.TIMER):
                 self.set_state(MyState.OFF)

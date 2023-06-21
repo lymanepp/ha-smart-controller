@@ -96,10 +96,12 @@ class SmartController(ABC):
         """Return the status of the sensor."""
         return self._state == STATE_ON
 
-    def get_entity_state(self, entity):
-        """Get the state of an entity. Return STATE_UNAVAILABLE if entity is not found."""
+    def is_entity_state(self, entity: str | None, value: Any):
+        """Compare the state of an entity. Return True if the value matches the state."""
+        if entity is None:
+            return False
         state = self.hass.states.get(entity)
-        return state.state if state else STATE_UNAVAILABLE
+        return state and state.state == value
 
     def set_timer(self, period: timedelta | None) -> None:
         """Start a timer or cancel a timer if time period is 'None'."""

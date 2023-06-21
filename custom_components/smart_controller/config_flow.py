@@ -4,10 +4,9 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 from typing import Final
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
@@ -20,7 +19,6 @@ from .config_flow_schema import (
     make_occupancy_schema,
 )
 from .const import DOMAIN, Config, ControllerType
-from .util import domain_entities
 
 ErrorsType = MutableMapping[str, str]
 
@@ -201,7 +199,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 
         assert self._controlled_entity
 
-        if user_input and _validate_light(self.hass, user_input, errors):
+        if user_input:
             unique_id = f"{DOMAIN}__" + slugify(self._controlled_entity)
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
@@ -343,7 +341,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
         assert self._controlled_entity
 
-        if user_input and _validate_light(self.hass, user_input, errors):
+        if user_input:
             state = self.hass.states.get(self._controlled_entity)
             assert state
             return self.async_create_entry(title=state.name, data=user_input)
@@ -377,26 +375,6 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
 
 # #### Internal functions ####
-
-
-def _validate_light(
-    hass: HomeAssistant, user_input: ConfigType, errors: ErrorsType
-) -> bool:
-    auto_off_minutes = user_input.get(Config.AUTO_OFF_MINUTES)
-    trigger_entity = user_input.get(Config.TRIGGER_ENTITY)
-    if auto_off_minutes and trigger_entity:
-        occupancy_sensors = domain_entities(
-            hass,
-            [Platform.BINARY_SENSOR],
-            device_classes=BinarySensorDeviceClass.OCCUPANCY,
-        )
-
-        # If trigger entity is an occupancy sensor, then disallow auto-off minutes
-        if trigger_entity in occupancy_sensors:
-            errors["base"] = "occupancy_and_auto_off"
-            return False
-
-    return True
 
 
 def _validate_occupancy(user_input: ConfigType, errors: ErrorsType) -> bool:

@@ -104,7 +104,7 @@ class LightController(SmartController):
     async def on_event(self, event: MyEvent) -> None:
         """Handle controller events."""
 
-        def acceptable_light_level():
+        def acceptable_illuminance():
             if self.illuminance_sensor and self.illuminance_cutoff is not None:
                 state = self.hass.states.get(self.illuminance_sensor)
                 if state and state.state is not None:
@@ -129,21 +129,29 @@ class LightController(SmartController):
                 self.set_state(MyState.OFF)
 
             case (MyState.INIT, MyEvent.ON):
-                self.set_state(MyState.ON)
-                self.set_timer(self._auto_off_period)
+                if (
+                    self.trigger_entity
+                    and self.get_entity_state(self.trigger_entity) == STATE_ON
+                ):
+                    self.set_state(MyState.ON)
+                else:
+                    self.set_state(MyState.ON_MANUAL)
+                    self.set_timer(self._auto_off_period)
 
             case (MyState.OFF, MyEvent.ON):
                 self.set_state(MyState.ON_MANUAL)
                 self.set_timer(self._auto_off_period)
 
             case (MyState.OFF, MyEvent.TRIGGER_ON):
-                if acceptable_light_level() and have_required():
+                if acceptable_illuminance() and have_required():
                     self.set_state(MyState.ON)
                     await set_light_mode(STATE_ON)
 
             case (MyState.ON, MyEvent.OFF):
-                self.set_state(MyState.OFF_MANUAL)
-                self.set_timer(self._manual_control_period)
+                self.set_state(
+                    MyState.OFF_MANUAL if self.trigger_entity else MyState.OFF
+                )
+                self.set_timer(None)
 
             case (MyState.ON, MyEvent.TRIGGER_OFF):
                 self.set_state(MyState.OFF)
@@ -155,15 +163,9 @@ class LightController(SmartController):
                 await set_light_mode(STATE_OFF)
 
             case (MyState.OFF_MANUAL, MyEvent.ON):
-                if self.trigger_entity:
-                    self.set_state(MyState.ON)
-                else:
-                    self.set_state(MyState.ON_MANUAL)
+                self.set_state(MyState.ON)
 
             case (MyState.OFF_MANUAL, MyEvent.TRIGGER_OFF):
-                self.set_state(MyState.OFF)
-
-            case (MyState.OFF_MANUAL, MyEvent.TIMER):
                 self.set_state(MyState.OFF)
 
             case (MyState.ON_MANUAL, MyEvent.OFF):

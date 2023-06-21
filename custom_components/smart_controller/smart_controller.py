@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON
+from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_UNAVAILABLE
 from homeassistant.core import CALLBACK_TYPE, Context, Event, HomeAssistant, State
 from homeassistant.helpers.event import (
     async_track_point_in_utc_time,
@@ -95,6 +95,11 @@ class SmartController(ABC):
     def is_on(self):
         """Return the status of the sensor."""
         return self._state == STATE_ON
+
+    def get_entity_state(self, entity):
+        """Get the state of an entity. Return STATE_UNAVAILABLE if entity is not found."""
+        state = self.hass.states.get(entity)
+        return state.state if state else STATE_UNAVAILABLE
 
     def set_timer(self, period: timedelta | None) -> None:
         """Start a timer or cancel a timer if time period is 'None'."""

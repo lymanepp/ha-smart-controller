@@ -105,7 +105,7 @@ sensor:
     name: Office Illuminance
     class: illuminance
     initial_availability: true
-    initial_value: 80.0
+    initial_value: 50.0
     unit_of_measurement: "%"
 
   - platform: virtual

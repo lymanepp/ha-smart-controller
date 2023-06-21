@@ -298,7 +298,7 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
         device_classes=SensorDeviceClass.ILLUMINANCE,
     )
 
-    required_entities = domain_entities(
+    binary_entities = domain_entities(
         hass, [Platform.BINARY_SENSOR, INPUT_BOOLEAN_DOMAIN]
     )
 
@@ -320,29 +320,13 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
 
     return vol.Schema(
         {
-            # required 'on' entities
+            # trigger entities
             vol.Optional(
-                str(Config.REQUIRED_ON_ENTITIES),
-                default=user_input.get(Config.REQUIRED_ON_ENTITIES, vol.UNDEFINED),
+                str(Config.TRIGGER_ENTITY),
+                default=user_input.get(Config.TRIGGER_ENTITY, vol.UNDEFINED),
             ): selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    include_entities=list(required_entities), multiple=True
-                ),
+                selector.EntitySelectorConfig(include_entities=list(binary_entities)),
             ),
-            # required 'off' entities
-            vol.Optional(
-                str(Config.REQUIRED_OFF_ENTITIES),
-                default=user_input.get(Config.REQUIRED_OFF_ENTITIES, vol.UNDEFINED),
-            ): selector.EntitySelector(
-                selector.EntitySelectorConfig(
-                    include_entities=list(required_entities), multiple=True
-                ),
-            ),
-            # auto off minutes
-            vol.Optional(
-                str(Config.AUTO_OFF_MINUTES),
-                default=user_input.get(Config.AUTO_OFF_MINUTES, vol.UNDEFINED),
-            ): vol.All(minutes_selector, vol.Coerce(int)),
             # illuminance sensor
             vol.Inclusive(
                 str(Config.ILLUMINANCE_SENSOR),
@@ -359,6 +343,29 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
                 "illumininance",
                 default=user_input.get(Config.ILLUMINANCE_CUTOFF, vol.UNDEFINED),
             ): vol.All(illuminance_selector, vol.Coerce(int)),
+            # required 'on' entities
+            vol.Optional(
+                str(Config.REQUIRED_ON_ENTITIES),
+                default=user_input.get(Config.REQUIRED_ON_ENTITIES, vol.UNDEFINED),
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    include_entities=list(binary_entities), multiple=True
+                ),
+            ),
+            # required 'off' entities
+            vol.Optional(
+                str(Config.REQUIRED_OFF_ENTITIES),
+                default=user_input.get(Config.REQUIRED_OFF_ENTITIES, vol.UNDEFINED),
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    include_entities=list(binary_entities), multiple=True
+                ),
+            ),
+            # auto off minutes
+            vol.Optional(
+                str(Config.AUTO_OFF_MINUTES),
+                default=user_input.get(Config.AUTO_OFF_MINUTES, vol.UNDEFINED),
+            ): vol.All(minutes_selector, vol.Coerce(int)),
             # manual control minutes
             vol.Optional(
                 str(Config.MANUAL_CONTROL_MINUTES),

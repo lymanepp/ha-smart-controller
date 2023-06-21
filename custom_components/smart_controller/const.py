@@ -58,3 +58,4 @@ class Config(StrEnum):
     SSI_MAX = "ssi_max"
     SSI_MIN = "ssi_min"
     TEMP_SENSOR = "temp_sensor"
+    TRIGGER_ENTITY = "trigger_entities"

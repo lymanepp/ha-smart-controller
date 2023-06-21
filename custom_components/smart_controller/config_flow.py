@@ -383,16 +383,16 @@ def _validate_light(
     hass: HomeAssistant, user_input: ConfigType, errors: ErrorsType
 ) -> bool:
     auto_off_minutes = user_input.get(Config.AUTO_OFF_MINUTES)
-    if auto_off_minutes:
-        required_on = user_input.get(Config.REQUIRED_ON_ENTITIES, [])
+    trigger_entity = user_input.get(Config.TRIGGER_ENTITY)
+    if auto_off_minutes and trigger_entity:
         occupancy_sensors = domain_entities(
             hass,
             [Platform.BINARY_SENSOR],
             device_classes=BinarySensorDeviceClass.OCCUPANCY,
         )
 
-        # If any 'required on' entities are occupancy sensors, then disallow auto-off minutes
-        if not set(required_on).isdisjoint(occupancy_sensors):
+        # If trigger entity is an occupancy sensor, then disallow auto-off minutes
+        if trigger_entity in occupancy_sensors:
             errors["base"] = "occupancy_and_auto_off"
             return False
 

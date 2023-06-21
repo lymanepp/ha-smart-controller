@@ -131,11 +131,12 @@
                 "title": "Configure {controlled_entity}",
                 "description": "Automate a light based on illuminancy and required states. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
+                    "trigger_entity": "Light will be turned on or off when any of this is turned on or off (optional):",
+                    "illuminance_sensor": "Illuminance sensor (optional):",
+                    "illuminance_cutoff": "Illuminance cutoff (optional):",
                     "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (optional):",
                     "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (optional):",
                     "auto_off_minutes": "Automatic off (optional):",
-                    "illuminance_sensor": "Illuminance sensor (optional):",
-                    "illuminance_cutoff": "Illuminance cutoff (optional):",
                     "manual_control_minutes": "Manual off time (optional):"
                 }
             },

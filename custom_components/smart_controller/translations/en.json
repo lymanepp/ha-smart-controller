@@ -27,8 +27,8 @@
                     "ssi_max": "Fan speed will be maximum speed when SSI above:",
                     "speed_min": "Minimum fan speed:",
                     "speed_max": "Maximum fan speed:",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):",
+                    "required_on_entities": "The following sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "The following sensors must all be 'off' for occupancy to be detected (optional):",
                     "manual_control_minutes": "Manual control (optional):"
                 }
             },
@@ -63,8 +63,10 @@
                 "title": "Configure {controlled_entity}",
                 "description": "Automate a light based on illuminancy and required states. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
-                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (optional):",
-                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (optional):",
+                    "brightness_pct": "Brightness:",
+                    "trigger_entity": "Trigger entity (optional):",
+                    "required_on_entities": "The following sensors must all be 'on' for the light to be automatically turned on (optional):",
+                    "required_off_entities": "The following sensors must all be 'off' for the light to be automatically turned on (optional):",
                     "auto_off_minutes": "Automatic off (optional):",
                     "illuminance_sensor": "Illuminance sensor (optional):",
                     "illuminance_cutoff": "Illuminance cutoff (optional):",
@@ -80,8 +82,8 @@
                     "motion_off_minutes": "Turn off after (optional):",
                     "other_entities": "Occupancy will be detected if any of these sensors are 'on' (optional):",
                     "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided (optional):",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):"
+                    "required_on_entities": "The following sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "The following sensors must all be 'off' for occupancy to be detected (optional):"
                 }
             }
         },
@@ -109,8 +111,8 @@
                     "ssi_max": "Fan speed will be maximum speed when SSI above:",
                     "speed_min": "Minimum fan speed:",
                     "speed_max": "Maximum fan speed:",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):",
+                    "required_on_entities": "The following sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "The following sensors must all be 'off' for occupancy to be detected (optional):",
                     "manual_control_minutes": "Manual control (optional):"
                 }
             },
@@ -131,11 +133,12 @@
                 "title": "Configure {controlled_entity}",
                 "description": "Automate a light based on illuminancy and required states. Everything is optional.\n\nIf you need help with the configuration have a look here: https://github.com/lymanepp/ha-smart-controller",
                 "data": {
+                    "brightness_pct": "Brightness:",
                     "trigger_entity": "Trigger entity (optional):",
                     "illuminance_sensor": "Illuminance sensor (optional):",
                     "illuminance_cutoff": "Illuminance cutoff (optional):",
-                    "required_on_entities": "These sensors must all be 'on' for the light to be automatically turned on (optional):",
-                    "required_off_entities": "These sensors must all be 'off' for the light to be automatically turned on (optional):",
+                    "required_on_entities": "The following sensors must all be 'on' for the light to be automatically turned on (optional):",
+                    "required_off_entities": "The following sensors must all be 'off' for the light to be automatically turned on (optional):",
                     "auto_off_minutes": "Automatic off (optional):",
                     "manual_control_minutes": "Manual off time (optional):"
                 }
@@ -149,8 +152,8 @@
                     "motion_off_minutes": "Turn off after (optional):",
                     "other_entities": "Occupancy will be detected if any of these sensors are 'on' (optional):",
                     "door_sensors": "Occupancy will be detected indefinitely when motion is detected in a room as long as all doors remain closed--even after motion stops. Only add door sensors when all access points in the area have sensors. Door sensors need to report quickly and cloud-based sensors should be avoided (optional):",
-                    "required_on_entities": "These sensors must all be 'on' for occupancy to be detected (optional):",
-                    "required_off_entities": "These sensors must all be 'off' for occupancy to be detected (optional):"
+                    "required_on_entities": "The following sensors must all be 'on' for occupancy to be detected (optional):",
+                    "required_off_entities": "The following sensors must all be 'off' for occupancy to be detected (optional):"
                 }
             }
         },

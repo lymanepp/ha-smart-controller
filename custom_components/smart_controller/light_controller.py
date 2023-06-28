@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from homeassistant.backports.enum import StrEnum
+from homeassistant.components.light import ATTR_BRIGHTNESS_PCT
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     SERVICE_TURN_OFF,
@@ -46,6 +47,7 @@ class LightController(SmartController):
         """Initialize the Light Controller."""
         super().__init__(hass, config_entry, MyState.INIT)
 
+        self.brightness_pct: float | None = self.data.get(Config.BRIGHTNESS_PCT)
         self.trigger_entity: str | None = self.data.get(Config.TRIGGER_ENTITY)
         self.illuminance_sensor: str | None = self.data.get(Config.ILLUMINANCE_SENSOR)
         self.illuminance_cutoff: int | None = self.data.get(Config.ILLUMINANCE_CUTOFF)
@@ -110,9 +112,14 @@ class LightController(SmartController):
             return actual == self._required
 
         async def set_light_mode(mode: str):
+            service_data = {}
+            if self.brightness_pct is not None and mode == STATE_ON:
+                service_data[ATTR_BRIGHTNESS_PCT] = self.brightness_pct
+
             await self.async_service_call(
                 Platform.LIGHT,
                 SERVICE_TURN_ON if mode == STATE_ON else SERVICE_TURN_OFF,
+                service_data,
             )
 
         match (self._state, event):

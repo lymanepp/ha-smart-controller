@@ -8,6 +8,7 @@ import voluptuous as vol
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.fan import ATTR_PERCENTAGE_STEP
 from homeassistant.components.input_boolean import DOMAIN as INPUT_BOOLEAN_DOMAIN
+from homeassistant.components.light import ATTR_SUPPORTED_COLOR_MODES, ColorMode
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import PERCENTAGE, Platform, UnitOfTemperature
 from homeassistant.core import HomeAssistant
@@ -289,7 +290,9 @@ def make_exhaust_fan_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.
     )
 
 
-def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema:
+def make_light_schema(
+    hass: HomeAssistant, user_input: ConfigType, controlled_entity: str
+) -> vol.Schema:
     """Create 'light' config schema."""
 
     illuminance_sensors = domain_entities(
@@ -318,7 +321,32 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
         ),
     )
 
-    return vol.Schema(
+    schema = {}
+
+    light_state = hass.states.get(controlled_entity)
+    assert light_state
+    color_modes = light_state.attributes.get(ATTR_SUPPORTED_COLOR_MODES, [])
+
+    if ColorMode.BRIGHTNESS in color_modes:
+        brightness_selector = selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1,
+                max=100,
+                unit_of_measurement=PERCENTAGE,
+                mode=selector.NumberSelectorMode.SLIDER,
+            ),
+        )
+
+        schema.update(
+            {
+                vol.Required(
+                    str(Config.BRIGHTNESS_PCT),
+                    default=user_input.get(Config.BRIGHTNESS_PCT, 100),
+                ): brightness_selector,
+            }
+        )
+
+    schema.update(
         {
             # trigger entities
             vol.Optional(
@@ -368,6 +396,8 @@ def make_light_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema
             ): vol.All(minutes_selector, vol.Coerce(int)),
         }
     )
+
+    return vol.Schema(schema)
 
 
 def make_occupancy_schema(hass: HomeAssistant, user_input: ConfigType) -> vol.Schema:

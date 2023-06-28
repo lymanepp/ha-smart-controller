@@ -36,6 +36,7 @@ class Config(StrEnum):
     """Configuration values."""
 
     AUTO_OFF_MINUTES = "auto_off_minutes"
+    BRIGHTNESS_PCT = "brightness_pct"
     CONTROLLED_ENTITY = "controlled_entity"
     CONTROLLER_TYPE = "type"
     DOOR_SENSORS = "door_sensors"

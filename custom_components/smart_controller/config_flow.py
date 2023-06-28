@@ -217,7 +217,9 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="light_options",
-            data_schema=make_light_schema(self.hass, user_input or {}),
+            data_schema=make_light_schema(
+                self.hass, user_input or {}, self._controlled_entity
+            ),
             description_placeholders=self._placeholders,
             errors=errors,
         )
@@ -346,7 +348,9 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
             assert state
             return self.async_create_entry(title=state.name, data=user_input)
 
-        schema = make_light_schema(self.hass, user_input or self.original_data)
+        schema = make_light_schema(
+            self.hass, user_input or self.original_data, self._controlled_entity
+        )
 
         return self.async_show_form(
             step_id="light",

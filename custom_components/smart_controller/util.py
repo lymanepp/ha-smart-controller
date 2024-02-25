@@ -7,8 +7,7 @@ from homeassistant import util
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
     ATTR_UNIT_OF_MEASUREMENT,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, State
 from homeassistant.helpers import entity_registry
@@ -23,14 +22,14 @@ from .const import ON_OFF_STATES
 
 def absolute_humidity(temp: tuple[float, str], hum: float):
     """Calculate absolute humidity from temperature and humidity."""
-    t_c = TemperatureConverter.convert(*temp, TEMP_CELSIUS)
+    t_c = TemperatureConverter.convert(*temp, UnitOfTemperature.CELSIUS)
 
     return hum * 6.112 * 2.1674 * e ** ((t_c * 17.67) / (t_c + 243.5)) / (t_c + 273.15)
 
 
 def summer_simmer_index(hass: HomeAssistant, temp: tuple[float, str], hum: float):
     """Calculate summer simmer index from temperature and humidity."""
-    t_f = TemperatureConverter.convert(*temp, TEMP_FAHRENHEIT)
+    t_f = TemperatureConverter.convert(*temp, UnitOfTemperature.FAHRENHEIT)
 
     ssi = 1.98 * (t_f - (0.55 - (0.0055 * hum)) * (t_f - 58)) - 56.83
 

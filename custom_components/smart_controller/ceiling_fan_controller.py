@@ -146,7 +146,7 @@ class CeilingFanController(SmartController):
             )
 
             new_speed = (
-                int(round(int(ssi_speed / speed_step) * speed_step, 3))
+                int(round(ssi_speed // speed_step * speed_step, 3))
                 if self._required_states == self._required
                 else 0
             )

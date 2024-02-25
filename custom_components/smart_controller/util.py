@@ -34,7 +34,7 @@ def summer_simmer_index(hass: HomeAssistant, temp: tuple[float, str], hum: float
     ssi = 1.98 * (t_f - (0.55 - (0.0055 * hum)) * (t_f - 58)) - 56.83
 
     return TemperatureConverter.convert(
-        ssi, TEMP_FAHRENHEIT, hass.config.units.temperature_unit
+        ssi, UnitOfTemperature.FAHRENHEIT, hass.config.units.temperature_unit
     )
 
 

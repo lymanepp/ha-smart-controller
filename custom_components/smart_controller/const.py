@@ -1,8 +1,8 @@
 """Constants for smart_controller."""
+from enum import StrEnum
 from logging import Logger, getLogger
 from typing import Final
 
-from homeassistant.backports.enum import StrEnum
 from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 
 _LOGGER: Logger = getLogger(__package__)

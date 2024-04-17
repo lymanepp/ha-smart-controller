@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from enum import StrEnum
 
-from homeassistant.backports.enum import StrEnum
 from homeassistant.components.fan import (
     ATTR_PERCENTAGE,
     ATTR_PERCENTAGE_STEP,

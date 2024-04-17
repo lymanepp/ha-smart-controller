@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from enum import StrEnum
 from typing import Final
 
-from homeassistant.backports.enum import StrEnum
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant, State

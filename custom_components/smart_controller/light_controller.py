@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from enum import StrEnum
 
-from homeassistant.backports.enum import StrEnum
 from homeassistant.components.light import ATTR_BRIGHTNESS_PCT
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (

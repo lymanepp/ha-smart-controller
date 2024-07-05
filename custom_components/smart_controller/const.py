@@ -1,4 +1,5 @@
 """Constants for smart_controller."""
+
 from enum import StrEnum
 from logging import Logger, getLogger
 from typing import Final

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import enum
 from datetime import timedelta
-from enum import StrEnum
 
 from homeassistant.components.light import ATTR_BRIGHTNESS_PCT
 from homeassistant.config_entries import ConfigEntry
@@ -21,7 +21,7 @@ from .smart_controller import SmartController
 from .util import remove_empty
 
 
-class MyState(StrEnum):
+class MyState(enum.StrEnum):
     """State machine states."""
 
     INIT = "init"
@@ -31,7 +31,7 @@ class MyState(StrEnum):
     OFF_MANUAL = "off_manual"
 
 
-class MyEvent(StrEnum):
+class MyEvent(enum.StrEnum):
     """State machine events."""
 
     OFF = "off"

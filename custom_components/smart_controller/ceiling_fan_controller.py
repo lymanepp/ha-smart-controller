@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import enum
 from datetime import datetime, timedelta
-from enum import StrEnum
 
 from homeassistant.components.fan import (
     ATTR_PERCENTAGE,
@@ -20,7 +20,7 @@ from .smart_controller import SmartController
 from .util import extrapolate_value, float_with_unit, remove_empty, summer_simmer_index
 
 
-class MyState(StrEnum):
+class MyState(enum.StrEnum):
     """State machine states."""
 
     INIT = "init"
@@ -30,7 +30,7 @@ class MyState(StrEnum):
     OFF_MANUAL = "off_manual"
 
 
-class MyEvent(StrEnum):
+class MyEvent(enum.StrEnum):
     """State machine events."""
 
     OFF = "off"

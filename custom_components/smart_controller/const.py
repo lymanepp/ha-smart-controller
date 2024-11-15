@@ -1,6 +1,6 @@
 """Constants for smart_controller."""
 
-from enum import StrEnum
+import enum
 from logging import Logger, getLogger
 from typing import Final
 
@@ -24,7 +24,7 @@ DEFAULT_EXHAUST_RISING_THRESHOLD: Final = 2.0
 DEFAULT_EXHAUST_MANUAL_MINUTES: Final = 15.0
 
 
-class ControllerType(StrEnum):
+class ControllerType(enum.StrEnum):
     """Supported controller types."""
 
     CEILING_FAN = "ceiling_fan"
@@ -33,7 +33,7 @@ class ControllerType(StrEnum):
     OCCUPANCY = "occupancy"
 
 
-class Config(StrEnum):
+class Config(enum.StrEnum):
     """Configuration values."""
 
     AUTO_OFF_MINUTES = "auto_off_minutes"

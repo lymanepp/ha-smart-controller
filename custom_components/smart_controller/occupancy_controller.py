@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import enum
 from datetime import timedelta
-from enum import StrEnum
 from typing import Final
 
 from homeassistant.config_entries import ConfigEntry
@@ -15,7 +15,7 @@ from .smart_controller import SmartController
 from .util import remove_empty
 
 
-class MyState(StrEnum):
+class MyState(enum.StrEnum):
     """State machine states."""
 
     UNOCCUPIED = "unoccupied"
@@ -24,7 +24,7 @@ class MyState(StrEnum):
     OTHER = "other"
 
 
-class MyEvent(StrEnum):
+class MyEvent(enum.StrEnum):
     """State machine events."""
 
     MOTION = "motion"

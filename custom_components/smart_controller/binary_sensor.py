@@ -2,17 +2,23 @@
 
 from __future__ import annotations
 
+import logging
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, Config, ControllerType
+from . import ControllerData
+from .const import Config, ControllerType
 from .entity import SmartControllerEntity
 from .smart_controller import SmartController
+
+_LOGGER = logging.getLogger(__name__)
 
 ENTITY_DESCRIPTIONS = [
     BinarySensorEntityDescription(
@@ -24,18 +30,25 @@ ENTITY_DESCRIPTIONS = [
 
 
 async def async_setup_entry(
-    hass, config_entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant,
+    entry: ConfigEntry[ControllerData],
+    async_add_entities: AddEntitiesCallback,
 ):
     """Set up the sensor platform."""
-    controller = hass.data[DOMAIN][config_entry.entry_id]
-    type_ = config_entry.data[Config.CONTROLLER_TYPE]
+    controller = entry.runtime_data.controller
+    type_ = entry.data.get(Config.CONTROLLER_TYPE)
+
+    _LOGGER.debug("Binary sensor type from config: %s", type_)
+    _LOGGER.debug(
+        "Available entity descriptions: %s", [desc.key for desc in ENTITY_DESCRIPTIONS]
+    )
 
     async_add_entities(
         [
             SmartControllerBinarySensor(
                 controller=controller,
                 entity_description=entity_description,
-                name=config_entry.title,
+                name=entry.title,
             )
             for entity_description in ENTITY_DESCRIPTIONS
             if entity_description.key == type_

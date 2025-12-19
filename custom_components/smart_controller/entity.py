@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from homeassistant.const import ATTR_SW_VERSION
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
+from homeassistant.helpers.entity import Entity
 from homeassistant.loader import async_get_custom_components
 
 from .const import DOMAIN, NAME

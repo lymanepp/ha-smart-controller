@@ -1,7 +1,7 @@
 {
     "config": {
         "step": {
-            "type_menu": {
+            "user": {
                 "title": "Choose what to control",
                 "menu_options": {
                     "ceiling_fan": "Ceiling fan",

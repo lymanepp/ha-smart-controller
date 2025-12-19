@@ -5,10 +5,15 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 from typing import Final
 
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import Platform
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow, FlowResult
+from homeassistant.data_entry_flow import AbortFlow
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
 
@@ -39,10 +44,10 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         return self.async_show_menu(
-            step_id="type_menu",
+            step_id="user",
             menu_options=[
                 ControllerType.CEILING_FAN,
                 ControllerType.EXHAUST_FAN,
@@ -54,13 +59,14 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_ceiling_fan(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
         if user_input is not None:
             self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
+            assert self._controlled_entity
             state = self.hass.states.get(self._controlled_entity)
             assert state
             self._placeholders["controlled_entity"] = state.name
@@ -78,7 +84,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_ceiling_fan_options(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
@@ -114,13 +120,14 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_exhaust_fan(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
         if user_input is not None:
             self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
+            assert self._controlled_entity
             state = self.hass.states.get(self._controlled_entity)
             assert state
             self._placeholders["controlled_entity"] = state.name
@@ -138,7 +145,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_exhaust_fan_options(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
@@ -170,13 +177,14 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_light(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
         if user_input is not None:
             self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
+            assert self._controlled_entity
             state = self.hass.states.get(self._controlled_entity)
             assert state
             self._placeholders["controlled_entity"] = state.name
@@ -194,7 +202,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_light_options(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
@@ -228,7 +236,7 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_occupancy(
         self,
         user_input: ConfigType | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
@@ -256,23 +264,23 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback  # type: ignore
-    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+    def async_get_options_flow(entry: ConfigEntry) -> OptionsFlow:
         """Get the options flow for this handler."""
-        return SmartControllerOptionsFlow(config_entry)
+        return SmartControllerOptionsFlow(entry)
 
 
 class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
     """Handle options."""
 
-    def __init__(self, config_entry: ConfigEntry):
+    def __init__(self, entry: ConfigEntry):
         """Initialize options flow."""
-        data = dict(config_entry.data)
+        data = dict(entry.data)
         self._controller_type = data.pop(Config.CONTROLLER_TYPE)
         self._controlled_entity = data.pop(Config.CONTROLLED_ENTITY, None)
-        self.original_data = dict(config_entry.options) or data
+        self.original_data = dict(entry.options) or data
         self._placeholders: dict[str, str] = {}
 
-    async def async_step_init(self, _: ConfigType | None = None) -> FlowResult:
+    async def async_step_init(self, _: ConfigType | None = None) -> ConfigFlowResult:
         """Handle option flow 'init' step."""
         if self._controlled_entity:
             state = self.hass.states.get(self._controlled_entity)
@@ -292,7 +300,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
     async def async_step_ceiling_fan(
         self, user_input: ConfigType | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle option flow 'ceiling fan' step."""
         errors: ErrorsType = {}
 
@@ -316,7 +324,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
     async def async_step_exhaust_fan(
         self, user_input: ConfigType | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle option flow 'exhaust fan' step."""
         errors: ErrorsType = {}
 
@@ -338,7 +346,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
     async def async_step_light(
         self, user_input: ConfigType | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle option flow 'light' step."""
         errors: ErrorsType = {}
 
@@ -362,7 +370,7 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
 
     async def async_step_occupancy(
         self, user_input: ConfigType | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle option flow 'occupancy' step."""
         errors: ErrorsType = {}
 

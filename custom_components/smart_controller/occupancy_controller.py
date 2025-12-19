@@ -41,11 +41,11 @@ ON_STATES: Final = [
 class OccupancyController(SmartController):
     """Representation of an Occupancy Controller."""
 
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the Occupancy Controller."""
-        super().__init__(hass, config_entry, initial_state=MyState.UNOCCUPIED)
+        super().__init__(hass, entry, initial_state=MyState.UNOCCUPIED)
 
-        self.name = config_entry.title
+        self.name = entry.title
         self._motion_sensors: list[str] = self.data.get(Config.MOTION_SENSORS, [])
         motion_off_minutes = self.data.get(Config.MOTION_OFF_MINUTES)
 

@@ -43,9 +43,9 @@ class MyEvent(enum.StrEnum):
 class ExhaustFanController(SmartController):
     """Representation of an Exhaust Fan Controller."""
 
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the controller."""
-        super().__init__(hass, config_entry, MyState.INIT)
+        super().__init__(hass, entry, MyState.INIT)
 
         self.temp_sensor: str = self.data[Config.TEMP_SENSOR]
         self.humidity_sensor: str = self.data[Config.HUMIDITY_SENSOR]

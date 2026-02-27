@@ -264,20 +264,20 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback  # type: ignore
-    def async_get_options_flow(entry: ConfigEntry) -> OptionsFlow:
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Get the options flow for this handler."""
-        return SmartControllerOptionsFlow(entry)
+        return SmartControllerOptionsFlow(config_entry)
 
 
 class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
     """Handle options."""
 
-    def __init__(self, entry: ConfigEntry):
+    def __init__(self, config_entry: ConfigEntry):
         """Initialize options flow."""
-        data = dict(entry.data)
+        data = dict(config_entry.data)
         self._controller_type = data.pop(Config.CONTROLLER_TYPE)
         self._controlled_entity = data.pop(Config.CONTROLLED_ENTITY, None)
-        self.original_data = dict(entry.options) or data
+        self.original_data = dict(config_entry.options) or data
         self._placeholders: dict[str, str] = {}
 
     async def async_step_init(self, _: ConfigType | None = None) -> ConfigFlowResult:

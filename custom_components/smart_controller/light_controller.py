@@ -44,9 +44,9 @@ class MyEvent(enum.StrEnum):
 class LightController(SmartController):
     """Representation of a Light Controller."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the Light Controller."""
-        super().__init__(hass, entry, MyState.INIT)
+        super().__init__(hass, config_entry, MyState.INIT)
 
         self.brightness_pct: float | None = self.data.get(Config.BRIGHTNESS_PCT)
         self.trigger_entity: str | None = self.data.get(Config.TRIGGER_ENTITY)

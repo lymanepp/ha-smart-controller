@@ -9,14 +9,7 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_ENTITY_ID, STATE_ON
-from homeassistant.core import (
-    CALLBACK_TYPE,
-    Context,
-    Event,
-    EventStateChangedData,
-    HomeAssistant,
-    State,
-)
+from homeassistant.core import CALLBACK_TYPE, Context, Event, HomeAssistant, State
 from homeassistant.helpers.event import (
     async_track_point_in_utc_time,
     async_track_state_change_event,
@@ -34,15 +27,17 @@ class SmartController(ABC):
     """Base class for controllers."""
 
     def __init__(
-        self, hass: HomeAssistant, entry: ConfigEntry, initial_state: str
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        initial_state: str,
     ) -> None:
         """Initialize the controller base."""
 
-        self.is_setup = False
         self.hass = hass
-        self.config_entry = entry
+        self.config_entry = config_entry
         self._state = initial_state
-        self.data: Mapping[str, Any] = entry.data | entry.options
+        self.data: Mapping[str, Any] = config_entry.data | config_entry.options
         self.controlled_entity: str | None = self.data.get(Config.CONTROLLED_ENTITY)
         self.name: str | None = None
         self.tracked_entity_ids: list[str] = []
@@ -63,7 +58,7 @@ class SmartController(ABC):
                     "%s; referenced entity '%s' is missing.", self.name, entity_id
                 )
 
-        async def on_state_event(event: Event[EventStateChangedData]) -> None:
+        async def on_state_event(event: Event) -> None:
             # ignore state change events triggered by service calls from derived controllers
             if not isinstance(event.context, MyContext):
                 await self._on_state_change(
@@ -175,7 +170,7 @@ class SmartController(ABC):
         domain: str,
         service: str,
         service_data: dict[str, Any] | None = None,
-    ) -> None:
+    ) -> bool | None:
         """Call a service."""
 
         _LOGGER.debug(
@@ -186,7 +181,7 @@ class SmartController(ABC):
             service,
         )
 
-        await self.hass.services.async_call(
+        return await self.hass.services.async_call(
             domain,
             service,
             service_data,
@@ -201,9 +196,7 @@ class SmartController(ABC):
         for update_callback in self._listeners:
             update_callback()
 
-    async def _on_state_change(
-        self, old_state: State | None, new_state: State | None
-    ) -> None:
+    async def _on_state_change(self, old_state: State | None, new_state: State) -> None:
         if (
             new_state is None
             or new_state.state in IGNORE_STATES

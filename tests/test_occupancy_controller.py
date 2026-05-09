@@ -1,7 +1,7 @@
 
 import pytest
 
-from homeassistant.core import HomeAssistant, State
+from homeassistant.core import HomeAssistant
 from homeassistant.const import STATE_ON, STATE_OFF
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry

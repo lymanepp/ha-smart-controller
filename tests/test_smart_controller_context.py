@@ -1,4 +1,3 @@
-from unittest.mock import AsyncMock
 
 import pytest
 from homeassistant.core import Context, Event, HomeAssistant, State

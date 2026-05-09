@@ -29,6 +29,8 @@ from .const import DOMAIN, Config, ControllerType
 ErrorsType = MutableMapping[str, str]
 
 FAN_TYPE: Final = "fan_type"
+GITHUB_URL: Final = "https://github.com/lymanepp/ha-smart-controller"
+SSI_URL: Final = "http://www.summersimmer.com/home.htm"
 
 
 class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -39,7 +41,10 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._controlled_entity: str | None = None
-        self._placeholders: dict[str, str] = {}
+        self._placeholders: dict[str, str] = {
+            "github_url": GITHUB_URL,
+            "ssi_url": SSI_URL,
+        }
 
     async def async_step_user(
         self,
@@ -66,9 +71,14 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
-            assert self._controlled_entity
+            if not self._controlled_entity:
+                return self.async_abort(reason="invalid_entity")
+
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
+
             self._placeholders["controlled_entity"] = state.name
 
             return await self.async_step_ceiling_fan_options()
@@ -88,7 +98,8 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
-        assert self._controlled_entity
+        if not self._controlled_entity:
+            return self.async_abort(reason="invalid_entity")
 
         if user_input is not None:
             # TODO: validate dependencies between fields here (or in schema)
@@ -98,7 +109,9 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
 
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
 
             data = {
                 Config.CONTROLLER_TYPE: ControllerType.CEILING_FAN,
@@ -127,9 +140,14 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
-            assert self._controlled_entity
+            if not self._controlled_entity:
+                return self.async_abort(reason="invalid_entity")
+
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
+
             self._placeholders["controlled_entity"] = state.name
 
             return await self.async_step_exhaust_fan_options()
@@ -149,7 +167,8 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
-        assert self._controlled_entity
+        if not self._controlled_entity:
+            return self.async_abort(reason="invalid_entity")
 
         if user_input is not None:
             unique_id = f"{DOMAIN}__" + slugify(self._controlled_entity)
@@ -157,7 +176,9 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
 
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
 
             data = {
                 Config.CONTROLLER_TYPE: ControllerType.EXHAUST_FAN,
@@ -184,9 +205,14 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._controlled_entity = user_input[Config.CONTROLLED_ENTITY]
 
-            assert self._controlled_entity
+            if not self._controlled_entity:
+                return self.async_abort(reason="invalid_entity")
+
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
+
             self._placeholders["controlled_entity"] = state.name
 
             return await self.async_step_light_options()
@@ -206,7 +232,8 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         errors: ErrorsType = {}
 
-        assert self._controlled_entity
+        if not self._controlled_entity:
+            return self.async_abort(reason="invalid_entity")
 
         if user_input:
             unique_id = f"{DOMAIN}__" + slugify(self._controlled_entity)
@@ -214,7 +241,9 @@ class SmartControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
 
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
 
             data = {
                 Config.CONTROLLER_TYPE: ControllerType.LIGHT,
@@ -278,13 +307,19 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         self._controller_type = data.pop(Config.CONTROLLER_TYPE)
         self._controlled_entity = data.pop(Config.CONTROLLED_ENTITY, None)
         self.original_data = dict(config_entry.options) or data
-        self._placeholders: dict[str, str] = {}
+        self._placeholders: dict[str, str] = {
+            "github_url": GITHUB_URL,
+            "ssi_url": SSI_URL,
+        }
 
     async def async_step_init(self, _: ConfigType | None = None) -> ConfigFlowResult:
         """Handle option flow 'init' step."""
         if self._controlled_entity:
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
+
             self._placeholders["controlled_entity"] = state.name
 
         match self._controller_type:
@@ -304,11 +339,15 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         """Handle option flow 'ceiling fan' step."""
         errors: ErrorsType = {}
 
-        assert self._controlled_entity
+        if not self._controlled_entity:
+            return self.async_abort(reason="invalid_entity")
 
         if user_input is not None:
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
+
             return self.async_create_entry(title=state.name, data=user_input)
 
         schema = make_ceiling_fan_schema(
@@ -328,11 +367,15 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         """Handle option flow 'exhaust fan' step."""
         errors: ErrorsType = {}
 
-        assert self._controlled_entity
+        if not self._controlled_entity:
+            return self.async_abort(reason="invalid_entity")
 
         if user_input is not None:
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
+
             return self.async_create_entry(title=state.name, data=user_input)
 
         schema = make_exhaust_fan_schema(self.hass, user_input or self.original_data)
@@ -350,11 +393,15 @@ class SmartControllerOptionsFlow(OptionsFlow):  # type: ignore
         """Handle option flow 'light' step."""
         errors: ErrorsType = {}
 
-        assert self._controlled_entity
+        if not self._controlled_entity:
+            return self.async_abort(reason="invalid_entity")
 
         if user_input:
             state = self.hass.states.get(self._controlled_entity)
-            assert state
+
+            if state is None:
+                return self.async_abort(reason="invalid_entity")
+
             return self.async_create_entry(title=state.name, data=user_input)
 
         schema = make_light_schema(

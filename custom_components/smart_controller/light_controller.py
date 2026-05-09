@@ -72,6 +72,8 @@ class LightController(SmartController):
             [
                 self.controlled_entity,
                 self.trigger_entity,
+                self.illuminance_sensor,
+                *self._required,
             ]
         )
 
@@ -101,8 +103,21 @@ class LightController(SmartController):
         def acceptable_illuminance():
             if self.illuminance_sensor and self.illuminance_cutoff is not None:
                 state = self.hass.states.get(self.illuminance_sensor)
-                if state and state.state is not None:
-                    return float(state.state) <= self.illuminance_cutoff
+                if (
+                    state
+                    and state.state not in (None, "unknown", "unavailable")
+                ):
+                    try:
+                        return (
+                            float(state.state) <= self.illuminance_cutoff
+                        )
+                    except (TypeError, ValueError):
+                        _LOGGER.warning(
+                            "%s; invalid illuminance sensor value '%s'",
+                            self.name,
+                            state.state,
+                        )
+                        return False
             return True
 
         def have_required():

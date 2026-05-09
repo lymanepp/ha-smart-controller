@@ -33,9 +33,7 @@ class MyEvent(enum.StrEnum):
     DOOR_OPEN = "door_open"
 
 
-ON_STATES: Final = [
-    str(s) for s in [MyState.MOTION, MyState.OTHER, MyState.WASP_IN_BOX]
-]
+ON_STATES: Final = {MyState.MOTION, MyState.OTHER, MyState.WASP_IN_BOX}
 
 
 class OccupancyController(SmartController):
@@ -92,7 +90,7 @@ class OccupancyController(SmartController):
                 await self.fire_event(MyEvent.UPDATE)
 
         elif state.entity_id in self._door_sensors:
-            if state.state in STATE_ON:
+            if state.state == STATE_ON:
                 await self.fire_event(MyEvent.DOOR_OPEN)
 
         elif state.entity_id in self._required:
@@ -134,7 +132,7 @@ class OccupancyController(SmartController):
             for entity in self._door_sensors:
                 state = self.hass.states.get(entity)
                 closed.append(state.state == STATE_ON if state else False)
-            return any(closed) and all(closed)
+            return bool(closed) and all(closed)
 
         def have_required() -> bool:
             actual: dict[str, str | None] = {}

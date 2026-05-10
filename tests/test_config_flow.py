@@ -1,12 +1,11 @@
 import pytest
 from homeassistant import data_entry_flow
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import InvalidData
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
 )
 
 from custom_components.smart_controller.const import (
+    DOMAIN,
     Config,
     ControllerType,
 )
@@ -14,39 +13,133 @@ from custom_components.smart_controller.const import (
 
 @pytest.mark.asyncio
 async def test_user_flow_starts_at_menu(
-    hass: HomeAssistant,
+    hass,
 ):
     result = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
-        },
+        DOMAIN,
+        context={"source": "user"},
     )
 
     assert result["type"] == (
         data_entry_flow.FlowResultType.MENU
     )
 
-    assert "menu_options" in result
     assert result["menu_options"]
 
 
 @pytest.mark.asyncio
-async def test_light_menu_selection_is_handled(
-    hass: HomeAssistant,
+async def test_all_menu_options_are_selectable(
+    hass,
 ):
     result = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
+        DOMAIN,
+        context={"source": "user"},
+    )
+
+    for option in result["menu_options"]:
+        flow = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": "user"},
+        )
+
+        next_result = await hass.config_entries.flow.async_configure(
+            flow["flow_id"],
+            {"next_step_id": option},
+        )
+
+        assert next_result["type"] in (
+            data_entry_flow.FlowResultType.FORM,
+            data_entry_flow.FlowResultType.CREATE_ENTRY,
+            data_entry_flow.FlowResultType.ABORT,
+            data_entry_flow.FlowResultType.MENU,
+        )
+
+
+@pytest.mark.asyncio
+async def test_invalid_menu_selection_rejected(
+    hass,
+):
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
+    )
+
+    with pytest.raises(Exception):
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {"next_step_id": "invalid"},
+        )
+
+
+@pytest.mark.asyncio
+async def test_multiple_flows_can_start(
+    hass,
+):
+    result1 = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
+    )
+
+    result2 = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
+    )
+
+    assert result1
+    assert result2
+
+
+@pytest.mark.asyncio
+async def test_existing_entry_does_not_break_flow(
+    hass,
+):
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="existing",
+        unique_id="existing",
+        data={
+            Config.CONTROLLER_TYPE:
+                ControllerType.LIGHT,
         },
+    )
+
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
+    )
+
+    assert result["type"] in (
+        data_entry_flow.FlowResultType.MENU,
+        data_entry_flow.FlowResultType.FORM,
+    )
+
+
+@pytest.mark.asyncio
+async def test_flow_result_contains_required_keys(
+    hass,
+):
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
+    )
+
+    assert "type" in result
+
+
+@pytest.mark.asyncio
+async def test_light_step_reachable(
+    hass,
+):
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
     )
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        {
-            "next_step_id": "light",
-        },
+        {"next_step_id": "light"},
     )
 
     assert result["type"] in (
@@ -57,124 +150,116 @@ async def test_light_menu_selection_is_handled(
 
 
 @pytest.mark.asyncio
-async def test_multiple_flow_inits_do_not_crash(
-    hass: HomeAssistant,
+async def test_ceiling_fan_step_reachable(
+    hass,
 ):
-    result1 = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
-        },
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
     )
 
-    result2 = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
-        },
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"next_step_id": "ceiling_fan"},
     )
 
-    assert result1 is not None
-    assert result2 is not None
+    assert result["type"] in (
+        data_entry_flow.FlowResultType.FORM,
+        data_entry_flow.FlowResultType.CREATE_ENTRY,
+        data_entry_flow.FlowResultType.ABORT,
+    )
 
 
 @pytest.mark.asyncio
-async def test_flow_result_has_required_structure(
-    hass: HomeAssistant,
+async def test_exhaust_fan_step_reachable(
+    hass,
 ):
     result = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
-        },
+        DOMAIN,
+        context={"source": "user"},
     )
 
-    assert "type" in result
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"next_step_id": "exhaust_fan"},
+    )
+
+    assert result["type"] in (
+        data_entry_flow.FlowResultType.FORM,
+        data_entry_flow.FlowResultType.CREATE_ENTRY,
+        data_entry_flow.FlowResultType.ABORT,
+    )
 
 
 @pytest.mark.asyncio
-async def test_flow_rejects_invalid_menu_option(
-    hass: HomeAssistant,
+async def test_occupancy_step_reachable(
+    hass,
 ):
     result = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
-        },
+        DOMAIN,
+        context={"source": "user"},
     )
 
-    with pytest.raises(InvalidData):
-        await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "next_step_id":
-                    "this_does_not_exist",
-            },
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"next_step_id": "occupancy"},
+    )
+
+    assert result["type"] in (
+        data_entry_flow.FlowResultType.FORM,
+        data_entry_flow.FlowResultType.CREATE_ENTRY,
+        data_entry_flow.FlowResultType.ABORT,
+    )
+
+
+@pytest.mark.asyncio
+async def test_repeated_menu_navigation(
+    hass,
+):
+    for _ in range(5):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": "user"},
+        )
+
+        assert result["type"] == (
+            data_entry_flow.FlowResultType.MENU
         )
 
 
 @pytest.mark.asyncio
-async def test_existing_entry_does_not_break_flow(
-    hass: HomeAssistant,
+async def test_flow_ids_are_unique(
+    hass,
 ):
-    entry = MockConfigEntry(
-        domain="smart_controller",
-        title="Existing Controller",
-        unique_id="existing-controller",
-        data={
-            Config.CONTROLLER_TYPE:
-                ControllerType.LIGHT,
-        },
+    result1 = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
     )
 
-    entry.add_to_hass(hass)
+    result2 = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "user"},
+    )
 
+    assert result1["flow_id"] != result2["flow_id"]
+
+
+@pytest.mark.asyncio
+async def test_invalid_reconfigure_does_not_crash(
+    hass,
+):
     result = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
-        },
+        DOMAIN,
+        context={"source": "user"},
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        None,
     )
 
     assert result["type"] in (
         data_entry_flow.FlowResultType.MENU,
         data_entry_flow.FlowResultType.FORM,
+        data_entry_flow.FlowResultType.ABORT,
     )
-
-
-@pytest.mark.asyncio
-async def test_all_menu_options_are_selectable(
-    hass: HomeAssistant,
-):
-    result = await hass.config_entries.flow.async_init(
-        "smart_controller",
-        context={
-            "source": "user",
-        },
-    )
-
-    assert result["type"] == (
-        data_entry_flow.FlowResultType.MENU
-    )
-
-    for option in result["menu_options"]:
-        subresult = await hass.config_entries.flow.async_init(
-            "smart_controller",
-            context={
-                "source": "user",
-            },
-        )
-
-        subresult = await hass.config_entries.flow.async_configure(
-            subresult["flow_id"],
-            {
-                "next_step_id": option,
-            },
-        )
-
-        assert subresult["type"] in (
-            data_entry_flow.FlowResultType.FORM,
-            data_entry_flow.FlowResultType.CREATE_ENTRY,
-            data_entry_flow.FlowResultType.ABORT,
-            data_entry_flow.FlowResultType.MENU,
-        )

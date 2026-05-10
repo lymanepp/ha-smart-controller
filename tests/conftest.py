@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -20,3 +21,12 @@ def auto_enable_custom_integrations(
 ):
     """Automatically enable loading custom integrations."""
     yield
+
+
+@pytest.fixture(autouse=True)
+def suppress_entity_sw_version_patch(monkeypatch):
+    monkeypatch.setattr(
+        "custom_components.smart_controller.entity."
+        "SmartControllerEntity._set_sw_version",
+        AsyncMock(),
+    )

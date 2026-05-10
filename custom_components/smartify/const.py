@@ -1,4 +1,4 @@
-"""Constants for smart_controller."""
+"""Constants for smartify_controller."""
 
 import enum
 from logging import Logger, getLogger
@@ -8,7 +8,7 @@ from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UN
 
 _LOGGER: Logger = getLogger(__package__)
 
-DOMAIN: Final = "smart_controller"
+DOMAIN: Final = "smartify_controller"
 NAME: Final = "Smart Controller"
 
 IGNORE_STATES: Final = (STATE_UNKNOWN, STATE_UNAVAILABLE)

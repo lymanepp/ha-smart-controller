@@ -2,5 +2,3 @@ colorlog==6.9.0
 ruff==0.9.4
 # https://github.com/MatthewFlamm/pytest-homeassistant-custom-component/releases
 pytest-homeassistant-custom-component==0.13.305
-pytest-cov
-coverage[toml]

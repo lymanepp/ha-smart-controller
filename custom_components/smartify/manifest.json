@@ -1,6 +1,6 @@
 {
-  "domain": "smartify_controller",
-  "name": "Smart Controller",
+  "domain": "smartify",
+  "name": "Smartify",
   "codeowners": [
     "@lymanepp"
   ],

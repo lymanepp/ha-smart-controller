@@ -7,9 +7,7 @@ from custom_components.smart_controller.entity import (
 
 def make_controller():
     controller = MagicMock()
-
     controller.name = "Test Controller"
-
     controller.available = True
 
     controller.extra_state_attributes = {

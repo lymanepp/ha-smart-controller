@@ -1,3 +1,4 @@
-# Strictly for tests
 # https://github.com/MatthewFlamm/pytest-homeassistant-custom-component/releases
-pytest-homeassistant-custom-component>=0.13.305
+pytest-homeassistant-custom-component==0.13.305
+pytest-cov
+coverage[toml]

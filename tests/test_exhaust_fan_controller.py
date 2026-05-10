@@ -41,7 +41,7 @@ async def test_high_humidity_turns_fan_on(
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.CONTROLLED_ENTITY: "fan.bathroom",
             Config.TEMP_SENSOR: "sensor.temp",
@@ -99,7 +99,7 @@ async def test_low_humidity_turns_fan_off(
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.CONTROLLED_ENTITY: "fan.bathroom",
             Config.TEMP_SENSOR: "sensor.temp",
@@ -152,7 +152,7 @@ async def test_invalid_humidity_does_not_crash(
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.CONTROLLED_ENTITY: "fan.bathroom",
             Config.TEMP_SENSOR: "sensor.temp",

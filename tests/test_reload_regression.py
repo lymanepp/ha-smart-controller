@@ -10,7 +10,7 @@ async def test_duplicate_reload_replaces_old_controller(
     hass: HomeAssistant,
 ):
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={},
     )
 

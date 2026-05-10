@@ -23,7 +23,7 @@ async def test_self_generated_context_ignored(
     controller = DummyController(
         hass,
         MockConfigEntry(
-            domain="smartify_controller",
+            domain="smartify",
         ),
         "off",
     )

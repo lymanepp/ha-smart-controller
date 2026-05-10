@@ -10,7 +10,7 @@ async def test_async_setup_entry(
     hass: HomeAssistant,
 ):
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={},
     )
 
@@ -37,7 +37,7 @@ async def test_async_unload_entry(
     hass: HomeAssistant,
 ):
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={},
     )
 

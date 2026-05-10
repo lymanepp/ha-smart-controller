@@ -37,7 +37,7 @@ async def test_closed_door_enters_wasp(hass: HomeAssistant):
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.DOOR_SENSORS: [
                 "binary_sensor.door",
@@ -60,7 +60,7 @@ async def test_required_entity_missing_prevents_occupancy(hass: HomeAssistant):
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.REQUIRED_ON_ENTITIES: [
                 "binary_sensor.required",

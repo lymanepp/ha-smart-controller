@@ -31,7 +31,7 @@ async def test_high_ssi_increases_speed(
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.CONTROLLED_ENTITY: "fan.family_room",
             Config.TEMP_SENSOR: "sensor.temperature",
@@ -82,7 +82,7 @@ async def test_attribute_only_percentage_change_processed(
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.CONTROLLED_ENTITY: "fan.family_room",
             Config.TEMP_SENSOR: "sensor.temperature",

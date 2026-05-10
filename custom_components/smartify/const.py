@@ -8,8 +8,8 @@ from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UN
 
 _LOGGER: Logger = getLogger(__package__)
 
-DOMAIN: Final = "smartify_controller"
-NAME: Final = "Smart Controller"
+DOMAIN: Final = "smartify"
+NAME: Final = "Smartify"
 
 IGNORE_STATES: Final = (STATE_UNKNOWN, STATE_UNAVAILABLE)
 ON_OFF_STATES: Final = (STATE_ON, STATE_OFF)

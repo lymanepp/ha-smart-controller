@@ -26,7 +26,7 @@ async def test_required_on_entity_blocks_activation(
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.CONTROLLED_ENTITY: "light.test",
             Config.TRIGGER_ENTITY: "binary_sensor.motion",
@@ -67,7 +67,7 @@ async def test_invalid_illuminance_does_not_crash(
     )
 
     entry = MockConfigEntry(
-        domain="smartify_controller",
+        domain="smartify",
         data={
             Config.CONTROLLED_ENTITY: "light.test",
             Config.TRIGGER_ENTITY: "binary_sensor.motion",

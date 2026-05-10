@@ -25,7 +25,7 @@ async def test_set_timer_creates_timer(
     controller = DummyController(
         hass,
         MockConfigEntry(
-            domain="smartify_controller",
+            domain="smartify",
         ),
         "off",
     )
@@ -46,7 +46,7 @@ async def test_set_timer_replaces_existing_timer(
     controller = DummyController(
         hass,
         MockConfigEntry(
-            domain="smartify_controller",
+            domain="smartify",
         ),
         "off",
     )
@@ -74,7 +74,7 @@ async def test_set_timer_none_cancels_timer(
     controller = DummyController(
         hass,
         MockConfigEntry(
-            domain="smartify_controller",
+            domain="smartify",
         ),
         "off",
     )
@@ -97,7 +97,7 @@ async def test_async_unload_cleans_up_timer(
     controller = DummyController(
         hass,
         MockConfigEntry(
-            domain="smartify_controller",
+            domain="smartify",
         ),
         "off",
     )
